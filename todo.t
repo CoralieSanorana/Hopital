@@ -103,8 +103,8 @@
             }
 
         - FONCTION:
-            . [] get_medordonnances_fille()
-            . [] get_medordonnances()
+            . [ok] get_medordonnances()
+            . [ok] get_medordonnances_fille()
             . [] insert_ordonnance()
             . [] insert_ordonnance_fille()
         - JAVA:

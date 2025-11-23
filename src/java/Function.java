@@ -233,14 +233,15 @@ public class Function{
         }
         return ordonnances;
     }
-    public Vector<MedOrdonnanceFille> get_MedOrdonnanceFilles(Connection con) throws Exception {
-        String sql = "SELECT * FROM med_ordonnance";
+    public Vector<MedOrdonnanceFille> get_MedOrdonnanceFilles(String idOrdonnance,Connection con) throws Exception {
+        String sql = "SELECT * FROM med_ordonnance_fille WHERE idordonnance = ?";
         Vector<MedOrdonnanceFille> ordonnances_fille = new Vector<>();
-        Statement ps = null;
+        PreparedStatement ps = null;
 
         try {
-            ps = con.createStatement();
-            ResultSet rs = ps.executeQuery(sql);
+            ps = con.prepareStatement(sql);
+            ps.setString(1, idOrdonnance);
+            ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
                 ordonnances_fille.add(new MedOrdonnanceFille(
@@ -265,6 +266,62 @@ public class Function{
             }
         }
         return ordonnances_fille;
+    }
+    public boolean insert_ordonnance(Med_Ordonnance ordonnance, Connection con) throws Exception {
+        String sql = "INSERT INTO med_ordonnance (id,id_consultation,daty,nb_jours,date_debut,date_fin,idmedecin) VALUES (?,?,?,?,?,?,?)";
+        PreparedStatement ps = null;
+        boolean retour = false;
+
+        try {
+            ps = con.prepareStatement(sql);
+            ps.setString(1, ordonnance.getId());
+            ps.setString(2, ordonnance.getId_consultation());
+            new java.sql.Date(ps.setDate(3, ordonnance.getDaty().getTime()));
+            ps.setString(4, ordonnance.getNb_jours());
+            new java.sql.Date(ps.setDate(5, ordonnance.getDate_debut().getTime()));
+            new java.sql.Date(ps.setDate(6, ordonnance.getDate_fin().getTime()));
+            ps.setString(7, ordonnance.getIdmedecin());
+
+            if(ps.executeUpdate()){
+                retour = true;
+            }
+        } catch (Exception e) {
+            throw e;
+        } finally{
+            if(ps != null){
+                ps.close();
+            }
+        }
+        return retour;
+    }
+    public boolean insert_ordonnance_fille(MedOrdonnanceFille ordonnance_fille, Connection con) throws Exception {
+        String sql = "INSERT INTO med_ordonnance_fille (idmedicament,posologie,idordonnance,id,etat,prix,nb_jours,unite) VALUES (?,?,?,?,?,?,?)";
+        PreparedStatement ps = null;
+        boolean retour = false;
+
+        try {
+            ps = con.prepareStatement(sql);
+            ps.setString(1, ordonnance_fille.getIdMedicament());
+            ps.setString(2, ordonnance_fille.getPosologie());
+            ps.setString(3, ordonnance_fille.getIdOrdonnance());
+            ps.setString(4, ordonnance_fille.getId());
+            ps.setString(5, ordonnance_fille.getEtat());
+            ps.setString(6, ordonnance_fille.getPrix());
+            ps.setString(7, ordonnance_fille.getNbJours());
+            ps.setString(8, ordonnance_fille.getUnite());
+
+
+            if(ps.executeUpdate()){
+                retour = true;
+            }
+        } catch (Exception e) {
+            throw e;
+        } finally{
+            if(ps != null){
+                ps.close();
+            }
+        }
+        return retour;
     }
 
 // mini fonctions manokatra Connection

@@ -1,0 +1,74 @@
+*{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+      font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+    }
+    body{
+      height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background:#f0f2f5;
+      }
+    .login-container{
+      background:white;
+      padding:40px 30px;
+      border-radius:15px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.2);
+      width:100%;
+      max-width:420px;
+      text-align:center;
+    }
+    h2{
+      margin-bottom:25px;
+      color:#333;
+      font-size:24px;
+    }
+    .input-group{
+      margin-bottom:20px;
+      text-align:left;
+    }
+    label{
+      display:block;
+      margin-bottom:8px;
+      color:#555;
+      font-weight:500;
+    }
+    input[type="text"],input[type="password"]{
+        width:100%;
+        padding:12px 15px;
+        border:1px solid #ddd;
+        border-radius:8px;
+        font-size:16px;
+        transition:border .3s;
+    }
+    input:focus{
+        outline:none;
+        border-color:#667eea;
+        box-shadow:0 0 0 3px rgba(102,126,234,0.1);
+    }
+    .submit-btn{
+        background:#667eea;
+        color:white;
+        border:none;
+        padding:12px;
+        width:100%;
+        border-radius:8px;
+        font-size:16px;
+        font-weight:600;cursor:pointer;
+        transition:background .3s;
+        margin-top:10px;
+    }
+    .submit-btn:hover{
+        background:#5a6fd8;}
+    .error{
+        color:#e74c3c;
+        font-size:14px;
+        margin-top:15px;
+        font-weight:500;}
+    .footer-text{
+        margin-top:20px;
+        font-size:13px;
+        color:#777;
+    }

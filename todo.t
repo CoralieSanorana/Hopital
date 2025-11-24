@@ -112,24 +112,23 @@
 
         ****** ordonnances.jsp ******** (EN COURS ......)
         -PAGE:
-            [] creer page ordonnances.jsp
-                .[] afficher tous les ordonnances
-                .[] ajouter bouton livrer
+            [ok] creer page ordonnances.jsp
+                .[ok] afficher tous les ordonnances
+                .[ok] ajouter bouton livrer -> diriger vers livraison.jsp
         - FONCTION:
             . [ok] get_medordonnances()
             . [ok] get_medordonnances_fille()
             
 
+        ********** livraison.jsp **********
+        - PAGE:
+            - [] creer page livraison.jsp
+                . [] recuperer les informations venant de ordonnances.jsp
+                . [] 
+        - FONCTION:
+            [ok] get_1ordonnance()
 
 
-
-        - [] creer page livraison des medicaments
-            . [] afficher seulement tous les ordonnances non livrer
-            . [] cliquer sur un ordonnance pour le livrer
-            . [] gerer le stock des medicaments apres livraison{
-                * [] afficher le stock actuelle
-                * [] afficher erreur au cas ou le stock est peu
-            }
 
 
         - [] creer page inventaire de stock

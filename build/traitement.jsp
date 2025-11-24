@@ -19,7 +19,6 @@ out.println("Patient reçu : " + patient + "<br>");
 
     Med_Ordonnance ordonnance = new Med_Ordonnance();
     ordonnance.setIdmedecin(med);
-out.println("Ordonnance idmed reçu : " + ordonnance.getIdmedecin() + "<br>");
 try {
     con = VanialaConnection.getConnection();
     con.setAutoCommit(false);

@@ -61,12 +61,12 @@
                 ~[ok] si oui -> diriger vers home.jsp
                 ~[ok] si non -> diriger vers login.jsp (avec message erreur)
 
-        ***** home.jsp *****  (EN COURS ......)
+        ***** home.jsp *****  
         - PAGE:
-            . [] creer page home.jsp
+            . [ok] creer page home.jsp
             . [ok] afficher le user actuelle
             . [ok] mettre un navbar pour faciliter orientation
-            . [] formulaire de saisi des ordonnances{
+            . [ok] formulaire de saisi des ordonnances{
                 * [ok] quel docteur (liste deroulante)
                 * [ok] quel patient (liste deroulante)
                 * [ok] quels sont les medicaments{
@@ -77,8 +77,8 @@
                 }
             . [] daty, date debut, date fin
             }
-            . [] sauvegarder les ordonnances saisi
-            . [] diriger les informations vers form.jsp
+            . [ok] sauvegarder les ordonnances saisi
+            . [ok] diriger les informations vers traitement.jsp
         - FONCTION:
             . [ok] get_clients()
             . [ok] get_medecins()
@@ -90,26 +90,37 @@
             . [ok] creer Medicament.java
             
 
-        ****** form.jsp ********
+        ****** traitement.jsp ******** 
         - PAGE:
-            .[] creer page form.jsp
-            .[] recuperer les informations du formulaire
-            .[] insertion des donnees (ordonnance, ordonnance_fille)
+            .[ok] creer page traitement.jsp
+            .[ok] recuperer les informations du formulaire
+            .[ok] insertion des donnees (ordonnance, ordonnance_fille)
                 * appel de la fonction insert_ordonnance()
                 * appel de la fonction insert_ordonnance_fille()
-            .[] verification de cette action{
-                * si inserer -> envoyer message de succes vers home.jsp
+            .[ok] verification de cette action{
+                * si inserer -> envoyer message de succes vers ordonnances.jsp
                 * si non -> envoyer message de error vers home.jsp
             }
 
         - FONCTION:
-            . [ok] get_medordonnances()
-            . [ok] get_medordonnances_fille()
-            . [] insert_ordonnance()
-            . [] insert_ordonnance_fille()
+            . [ok] insert_ordonnance()
+            . [ok] insert_ordonnance_fille()
         - JAVA:
             . [ok] creer Med_Ordonnance.java
             . [ok] creer MedOrdonnanceFille.java
+
+
+        ****** ordonnances.jsp ******** (EN COURS ......)
+        -PAGE:
+            [] creer page ordonnances.jsp
+                .[] afficher tous les ordonnances
+                .[] ajouter bouton livrer
+        - FONCTION:
+            . [ok] get_medordonnances()
+            . [ok] get_medordonnances_fille()
+            
+
+
 
 
         - [] creer page livraison des medicaments

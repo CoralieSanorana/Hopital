@@ -200,130 +200,183 @@ public class Function{
 
         return medicaments;
     }
-    public Vector<Med_Ordonnance> get_Med_Ordonnances(Connection con) throws Exception {
-        String sql = "SELECT * FROM med_ordonnance";
-        Vector<Med_Ordonnance> ordonnances = new Vector<>();
-        Statement ps = null;
+    public Vector<Med_Ordonnance> get_medordonnances(Connection con) throws Exception {
+        String sql = "SELECT * FROM med_ordonnance ORDER BY daty DESC"; // tri utile
 
-        try {
-            ps = con.createStatement();
-            ResultSet rs = ps.executeQuery(sql);
+        Vector<Med_Ordonnance> ordonnances = new Vector<>();
+
+        try (Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                ordonnances.add(new Med_Ordonnance(
-                    rs.getString("id"),
-                    rs.getString("idconsultation"),
-                    new java.util.Date(rs.getDate("daty").getTime()),
-                    rs.getString("nb_jours"),
-                    new java.util.Date(rs.getDate("date_debut").getTime()),
-                    new java.util.Date(rs.getDate("date_fin").getTime()),
-                    rs.getString("type"),
-                    rs.getInt("etat"),
-                    rs.getString("observation_s"),
-                    rs.getString("idmedecin")
-                ));
-            }
+                Med_Ordonnance ord = new Med_Ordonnance();
 
-        } catch (Exception e) {
-            throw e;
-        } finally{
-            if(ps != null){
-                ps.close();
+                ord.setId(rs.getString("ID"));
+                ord.setId_consultation(rs.getString("ID_CONSULTATION"));
+                ord.setDaty(getDateFromResultSet(rs, "DATY"));
+                ord.setNb_jours(rs.getString("NB_JOURS"));
+                ord.setDate_debut(getDateFromResultSet(rs, "DATE_DEBUT"));
+                ord.setDate_fin(getDateFromResultSet(rs, "DATE_FIN"));
+                ord.setObservation_s(rs.getString("OBSERVATION_SOINS"));
+                ord.setIdmedecin(rs.getString("IDMEDECIN"));
+
+                ord.setId_type_arret(rs.getString("ID_TYPE_ARRET"));
+                ord.setObservation(rs.getString("OBSERVATION"));
+                ord.setId_type_soins(rs.getString("ID_TYPE_SOINS"));
+                ord.setType(rs.getString("TYPE"));
+                ord.setEtat(rs.getInt("ETAT"));
+                ord.setIdentite(rs.getString("IDENTITE"));
+                ord.setIdretraite(rs.getString("IDRETRAITE"));
+                ord.setIddeces(rs.getString("IDDECES"));
+                ord.setIdmembre(rs.getString("IDMEMBRE"));
+                ord.setSocietepriseen(rs.getString("SOCIETEPRISEENCHARGE"));
+
+                ordonnances.add(ord);
             }
         }
         return ordonnances;
     }
-    public Vector<MedOrdonnanceFille> get_MedOrdonnanceFilles(String idOrdonnance,Connection con) throws Exception {
-        String sql = "SELECT * FROM med_ordonnance_fille WHERE idordonnance = ?";
-        Vector<MedOrdonnanceFille> ordonnances_fille = new Vector<>();
-        PreparedStatement ps = null;
+    public Vector<MedOrdonnanceFille> get_medordonnances_fille(String idOrdonnance, Connection con) 
+        throws Exception {
+    
+        if (idOrdonnance == null || idOrdonnance.trim().isEmpty()) {
+            throw new IllegalArgumentException("L'ID de l'ordonnance est obligatoire");
+        }
 
-        try {
-            ps = con.prepareStatement(sql);
-            ps.setString(1, idOrdonnance);
-            ResultSet rs = ps.executeQuery();
+        String sql = """
+            SELECT * FROM med_ordonnance_fille 
+            WHERE idordonnance = ? 
+            ORDER BY id
+            """;
 
-            while (rs.next()) {
-                ordonnances_fille.add(new MedOrdonnanceFille(
-                    rs.getString("id"),
-                    rs.getString("idconsultation"),
-                    new java.util.Date(rs.getDate("daty").getTime()),
-                    rs.getString("nb_jours"),
-                    new java.util.Date(rs.getDate("date_debut").getTime()),
-                    new java.util.Date(rs.getDate("date_fin").getTime()),
-                    rs.getString("type"),
-                    rs.getInt("etat"),
-                    rs.getString("observation_s"),
-                    rs.getString("idmedecin")
-                ));
-            }
+        Vector<MedOrdonnanceFille> lignes = new Vector<>();
 
-        } catch (Exception e) {
-            throw e;
-        } finally{
-            if(ps != null){
-                ps.close();
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, idOrdonnance.trim());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    MedOrdonnanceFille fille = new MedOrdonnanceFille(
+                        rs.getString("IDMEDICAMENT"),
+                        rs.getString("POSOLOGIE"),
+                        rs.getString("IDORDONNANCE"),
+                        rs.getString("ID"),
+                        rs.getInt("ETAT"),
+                        rs.getString("IDUSER"),
+                        rs.getDouble("PRIX"),
+                        rs.getString("MAGASIN"),
+                        rs.getInt("NB_JOURS"),
+                        rs.getString("UNITE"),
+                        rs.getString("REMARQUE"),
+                        rs.getDouble("PUUNITE"),
+                        rs.getDouble("QUANTITE"),
+                        rs.getDouble("TAUXPRISEENCHARGE")
+                    );
+                    lignes.add(fille);
+                }
             }
         }
-        return ordonnances_fille;
+        return lignes;
     }
-    public boolean insert_ordonnance(Med_Ordonnance ordonnance, Connection con) throws Exception {
-        String sql = "INSERT INTO med_ordonnance (id,id_consultation,daty,nb_jours,date_debut,date_fin,idmedecin) VALUES (?,?,?,?,?,?,?)";
-        PreparedStatement ps = null;
-        boolean retour = false;
+    public String insert_ordonnance(Med_Ordonnance ordonnance, Connection con) throws SQLException {
+        if (ordonnance == null) {
+            throw new IllegalArgumentException("L'ordonnance ne peut pas être null");
+        }
 
-        try {
-            ps = con.prepareStatement(sql);
-            ps.setString(1, ordonnance.getId());
-            ps.setString(2, ordonnance.getId_consultation());
-            new java.sql.Date(ps.setDate(3, ordonnance.getDaty().getTime()));
-            ps.setString(4, ordonnance.getNb_jours());
-            new java.sql.Date(ps.setDate(5, ordonnance.getDate_debut().getTime()));
-            new java.sql.Date(ps.setDate(6, ordonnance.getDate_fin().getTime()));
-            ps.setString(7, ordonnance.getIdmedecin());
+        String sql = """
+            INSERT INTO VANIALA.med_ordonnance (
+                id_consultation, daty, nb_jours,
+                date_debut, date_fin, observation_soins, idmedecin,
+                id_type_arret, observation, id_type_soins, type, etat,
+                identite, idretraite, iddeces, idmembre, societepriseencharge
+            ) VALUES (
+                ?, CURRENT_TIMESTAMP, ?,
+                CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?, ?,
+                ?, ?, ?, ?, ?,
+                ?, ?, ?, ?, ?
+            )
+            """;
 
-            if(ps.executeUpdate()){
-                retour = true;
+        try (PreparedStatement ps = con.prepareStatement(sql, new String[]{"ID"})) {  
+
+            int i = 1;
+            ps.setString(i++, ordonnance.getId_consultation());
+            ps.setString(i++, ordonnance.getNb_jours());
+            ps.setString(i++, ordonnance.getObservation_s());
+            ps.setString(i++, ordonnance.getIdmedecin());
+            ps.setString(i++, ordonnance.getId_type_arret());
+            ps.setString(i++, ordonnance.getObservation());
+            ps.setString(i++, ordonnance.getId_type_soins());
+            ps.setString(i++, ordonnance.getType());
+            ps.setInt(i++, ordonnance.getEtat());
+            ps.setString(i++, ordonnance.getIdentite());
+            ps.setString(i++, ordonnance.getIdretraite());
+            ps.setString(i++, ordonnance.getIddeces());
+            ps.setString(i++, ordonnance.getIdmembre());
+            ps.setString(i++, ordonnance.getSocietepriseen());
+
+            int affectedRows = ps.executeUpdate();
+
+            if (affectedRows == 0) {
+                throw new SQLException("Échec de l'insertion de l'ordonnance, aucune ligne insérée.");
             }
-        } catch (Exception e) {
-            throw e;
-        } finally{
-            if(ps != null){
-                ps.close();
+
+            try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    return generatedKeys.getString(1); 
+                } else {
+                    throw new SQLException("Insertion réussie mais impossible de récupérer l'ID généré.");
+                }
             }
         }
-        return retour;
     }
-    public boolean insert_ordonnance_fille(MedOrdonnanceFille ordonnance_fille, Connection con) throws Exception {
-        String sql = "INSERT INTO med_ordonnance_fille (idmedicament,posologie,idordonnance,id,etat,prix,nb_jours,unite) VALUES (?,?,?,?,?,?,?)";
-        PreparedStatement ps = null;
-        boolean retour = false;
-
-        try {
-            ps = con.prepareStatement(sql);
-            ps.setString(1, ordonnance_fille.getIdMedicament());
-            ps.setString(2, ordonnance_fille.getPosologie());
-            ps.setString(3, ordonnance_fille.getIdOrdonnance());
-            ps.setString(4, ordonnance_fille.getId());
-            ps.setString(5, ordonnance_fille.getEtat());
-            ps.setString(6, ordonnance_fille.getPrix());
-            ps.setString(7, ordonnance_fille.getNbJours());
-            ps.setString(8, ordonnance_fille.getUnite());
-
-
-            if(ps.executeUpdate()){
-                retour = true;
-            }
-        } catch (Exception e) {
-            throw e;
-        } finally{
-            if(ps != null){
-                ps.close();
-            }
+    public boolean insert_ordonnance_fille(MedOrdonnanceFille ordonnanceFille, Connection con) 
+        throws Exception {
+    
+        if (ordonnanceFille == null) {
+            throw new IllegalArgumentException("L'ordonnance fille ne peut pas être null");
         }
-        return retour;
-    }
 
+        String sql = """
+            INSERT INTO med_ordonnance_fille (
+                idmedicament, posologie, idordonnance, etat,
+                iduser, prix, magasin, nb_jours, unite,
+                remarque, puunite, quantite, tauxpriseencharge
+            ) VALUES (
+                ?, ?, ?, ?,
+                ?, ?, ?, ?, ?,
+                ?, ?, ?, ?
+            )
+            """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            int i = 1;
+            
+            setStringOrNull(ps, i++, ordonnanceFille.getIdMedicament());
+            setStringOrNull(ps, i++, ordonnanceFille.getPosologie());
+            setStringOrNull(ps, i++, ordonnanceFille.getIdOrdonnance());
+            ps.setInt(i++, ordonnanceFille.getEtat());
+            setStringOrNull(ps, i++, ordonnanceFille.getIdUser());
+            
+            setDoubleOrNull(ps, i++, ordonnanceFille.getPrix());
+            setStringOrNull(ps, i++, ordonnanceFille.getMagasin());
+            ps.setInt(i++, ordonnanceFille.getNbJours());
+            setStringOrNull(ps, i++, ordonnanceFille.getUnite());
+            setStringOrNull(ps, i++, ordonnanceFille.getRemarque());
+            setDoubleOrNull(ps, i++, ordonnanceFille.getPuUnite());
+            setDoubleOrNull(ps, i++, ordonnanceFille.getQuantite());
+            setDoubleOrNull(ps, i++, ordonnanceFille.getTauxPriseEnCharge());
+
+            int rowsInserted = ps.executeUpdate();
+            return rowsInserted > 0;
+
+        } catch (Exception e) {
+            throw new Exception(
+                "Échec de l'insertion de l'ordonnance fille [ID=" + ordonnanceFille.getId() + 
+                ", Médicament=" + ordonnanceFille.getIdMedicament() + "]", e);
+        }
+    }
 // mini fonctions manokatra Connection
     public User login(String nom,String pwd) throws Exception{
         User user = null;
@@ -404,6 +457,58 @@ public class Function{
             }
         }
         return medicaments;
+    }
+    public Vector<Med_Ordonnance> get_medordonnances() throws Exception{
+        Vector<Med_Ordonnance> ordonnances = new Vector<>();
+        Connection con = null;
+        try{
+            con = VanialaConnection.getConnection();
+            ordonnances = get_medordonnances(con);
+
+        }catch (Exception e) {
+            throw e;
+        } finally{
+            if(con != null){
+                con.close();
+            }
+        }
+        return ordonnances;
+    }
+    public Vector<MedOrdonnanceFille> get_medordonnances_fille(String idordonnance) throws Exception{
+        Vector<MedOrdonnanceFille> ordonnances_fille = new Vector<>();
+        Connection con = null;
+        try{
+            con = VanialaConnection.getConnection();
+            ordonnances_fille = get_medordonnances_fille(idordonnance,con);
+
+        }catch (Exception e) {
+            throw e;
+        } finally{
+            if(con != null){
+                con.close();
+            }
+        }
+        return ordonnances_fille;
+    }
+   
+// fonctions utiles
+    private java.util.Date getDateFromResultSet(ResultSet rs, String columnName) throws SQLException {
+        java.sql.Date sqlDate = rs.getDate(columnName);
+        return sqlDate != null ? new java.util.Date(sqlDate.getTime()) : null;
+    }
+    private void setStringOrNull(PreparedStatement ps, int index, String value) throws Exception {
+        if (value == null || value.trim().isEmpty()) {
+            ps.setNull(index, java.sql.Types.VARCHAR);
+        } else {
+            ps.setString(index, value.trim());
+        }
+    }
+    private void setDoubleOrNull(PreparedStatement ps, int index, Double value) throws Exception {
+        if (value == null || value.isNaN()) {
+            ps.setNull(index, java.sql.Types.NUMERIC);
+        } else {
+            ps.setDouble(index, value);
+        }
     }
 
 }

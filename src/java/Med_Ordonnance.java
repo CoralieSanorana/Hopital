@@ -107,11 +107,11 @@ public class Med_Ordonnance {
     }
     public void setId(String id) throws Exception{
         try {
-            if (id == null || id == "") {
+            /* if (id == null || id == "") {
                 throw new Exception("ID Med_ordonnance INVALIDE");
-            } else{
+            } else{ */
                 this.id = id;
-            }
+            //}
         } catch (Exception e) {
             throw e;
         }
@@ -120,7 +120,7 @@ public class Med_Ordonnance {
         try {
             this.id_consultation = id_consultation;
         } catch (Exception e) {
-            // TODO: handle exception
+            throw e;
         }
     }
     public void setDaty(Date daty) throws Exception{
@@ -138,11 +138,7 @@ public class Med_Ordonnance {
     }
     public void setDate_fin(Date date_fin) throws Exception{
         try {
-            if (date_fin == null) {
-                throw new Exception("DATE FIN Med_ordonnance INVALIDE");
-            }else{
-                this.date_fin = date_fin;
-            }
+            this.date_fin = date_fin;
         } catch (Exception e) {
             throw e;
         }
@@ -159,19 +155,24 @@ public class Med_Ordonnance {
     public void setEtat(int etat) {
         this.etat = etat;
     }
-    public void setObservation_s(String observation_s) {
-        this.observation_s = observation_s;
-    }
-    public void setIdmedecin(String idmedecin) throws Exception{
+    public void setObservation_s(String observation_s) throws Exception{
         try {
-            if (idmedecin == null || idmedecin == "") {
-                throw new Exception("IDmedecin Med_ordonnance INVALIDE");
+            if (observation_s == null || observation_s.equals("")) {
+                throw new Exception("Observation_S Med_ordonnance INVALIDE");
             } else{
-                this.idmedecin = idmedecin;
+                this.observation_s = observation_s;
             }
         } catch (Exception e) {
             throw e;
         }
+    }
+    public void setIdmedecin(String idmedecin) throws Exception{
+            /* if (idmedecin == null || idmedecin.equals("")) {
+                throw new Exception("IDmedecin Med_ordonnance INVALIDE");
+            } else{ */
+                this.idmedecin = idmedecin;
+            //}
+
     }
     public void setIdentite(String identite) {
         this.identite = identite;

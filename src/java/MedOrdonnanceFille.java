@@ -1,5 +1,4 @@
 package model;
-import java.math.BigDecimal;
 
 public class MedOrdonnanceFille {
 
@@ -7,22 +6,22 @@ public class MedOrdonnanceFille {
     private String posologie;
     private String idOrdonnance;
     private String id;                    
-    private Long etat;
+    private int etat;
     private String idUser;
-    private BigDecimal prix;
+    private double prix;
     private String magasin;
-    private Integer nbJours;
+    private int nbJours;
     private String unite;
     private String remarque;
-    private BigDecimal puUnite;           
-    private BigDecimal quantite;
-    private BigDecimal tauxPriseEnCharge;
+    private double puUnite;           
+    private double quantite;
+    private double tauxPriseEnCharge;
 
     public MedOrdonnanceFille(String idMedicament, String posologie, String idOrdonnance,
-                              String id, Long etat, String idUser, BigDecimal prix,
-                              String magasin, Integer nbJours, String unite,
-                              String remarque, BigDecimal puUnite, BigDecimal quantite,
-                              BigDecimal tauxPriseEnCharge) {
+                              String id, int etat, String idUser, double prix,
+                              String magasin, int nbJours, String unite,
+                              String remarque, double puUnite, double quantite,
+                              double tauxPriseEnCharge) {
         
         this.setIdMedicament(idMedicament);
         this.setPosologie(posologie);
@@ -47,16 +46,16 @@ public class MedOrdonnanceFille {
     public String getPosologie() { return posologie; }
     public String getIdOrdonnance() { return idOrdonnance; }
     public String getId() { return id; }
-    public Long getEtat() { return etat; }
+    public int getEtat() { return etat; }
     public String getIdUser() { return idUser; }
-    public BigDecimal getPrix() { return prix; }
+    public double getPrix() { return prix; }
     public String getMagasin() { return magasin; }
-    public Integer getNbJours() { return nbJours; }
+    public int getNbJours() { return nbJours; }
     public String getUnite() { return unite; }
     public String getRemarque() { return remarque; }
-    public BigDecimal getPuUnite() { return puUnite; }
-    public BigDecimal getQuantite() { return quantite; }
-    public BigDecimal getTauxPriseEnCharge() { return tauxPriseEnCharge; }
+    public double getPuUnite() { return puUnite; }
+    public double getQuantite() { return quantite; }
+    public double getTauxPriseEnCharge() { return tauxPriseEnCharge; }
 
     public void setIdMedicament(String idMedicament) {
         if (idMedicament != null && idMedicament.trim().isEmpty()) {
@@ -92,7 +91,7 @@ public class MedOrdonnanceFille {
         this.id = id.trim();
     }
 
-    public void setEtat(Long etat) {
+    public void setEtat(int etat) {
         this.etat = etat;
     }
 
@@ -103,11 +102,8 @@ public class MedOrdonnanceFille {
         this.idUser = idUser;
     }
 
-    public void setPrix(BigDecimal prix) {
-        if (prix != null && (prix.scale() > 2 || prix.precision() > 15)) {
-            throw new IllegalArgumentException("PRIX doit avoir max 15 chiffres dont 2 décimales");
-        }
-        if (prix != null && prix.signum() < 0) {
+    public void setPrix(double prix) {
+        if (prix  < 0) {
             throw new IllegalArgumentException("PRIX ne peut pas être négatif");
         }
         this.prix = prix;
@@ -120,8 +116,8 @@ public class MedOrdonnanceFille {
         this.magasin = magasin;
     }
 
-    public void setNbJours(Integer nbJours) {
-        if (nbJours != null && nbJours <= 0) {
+    public void setNbJours(int nbJours) {
+        if (nbJours <= 0) {
             throw new IllegalArgumentException("NB_JOURS doit être positif");
         }
         this.nbJours = nbJours;
@@ -141,46 +137,24 @@ public class MedOrdonnanceFille {
         this.remarque = remarque;
     }
 
-    public void setPuUnite(BigDecimal puUnite) {
-        if (puUnite != null && (puUnite.scale() > 3 || puUnite.precision() > 20)) {
-            throw new IllegalArgumentException("PUUNITE doit avoir max 20 chiffres dont 3 décimales");
-        }
-        if (puUnite != null && puUnite.signum() < 0) {
+    public void setPuUnite(double puUnite) {
+        if (puUnite < 0) {
             throw new IllegalArgumentException("PUUNITE ne peut pas être négatif");
         }
         this.puUnite = puUnite;
     }
 
-    public void setQuantite(BigDecimal quantite) {
-        if (quantite != null && (quantite.scale() > 2 || quantite.precision() > 10)) {
-            throw new IllegalArgumentException("QUANTITE doit avoir max 10 chiffres dont 2 décimales");
-        }
-        if (quantite != null && quantite.signum() <= 0) {
+    public void setQuantite(double quantite) {
+        if (quantite <= 0) {
             throw new IllegalArgumentException("QUANTITE doit être strictement positive");
         }
         this.quantite = quantite;
     }
 
-    public void setTauxPriseEnCharge(BigDecimal tauxPriseEnCharge) {
-        if (tauxPriseEnCharge != null && (tauxPriseEnCharge.scale() > 2 || tauxPriseEnCharge.precision() > 30)) {
-            throw new IllegalArgumentException("TAUXPRISEENCHARGE dépasse la précision autorisée (30,2)");
-        }
-        if (tauxPriseEnCharge != null && (tauxPriseEnCharge.signum() < 0 || tauxPriseEnCharge.compareTo(BigDecimal.valueOf(100)) > 0)) {
+    public void setTauxPriseEnCharge(double tauxPriseEnCharge) {
+        /* if (tauxPriseEnCharge != null && (tauxPriseEnCharge.signum() < 0 || tauxPriseEnCharge.compareTo(double.valueOf(100)) > 0)) {
             throw new IllegalArgumentException("TAUXPRISEENCHARGE doit être entre 0 et 100 %");
-        }
+        } */
         this.tauxPriseEnCharge = tauxPriseEnCharge;
-    }
-
-    @Override
-    public String toString() {
-        return "MedOrdonnanceFille{" +
-                "id='" + id + '\'' +
-                ", idMedicament='" + idMedicament + '\'' +
-                ", posologie='" + posologie + '\'' +
-                ", prix=" + prix +
-                ", quantite=" + quantite +
-                ", nbJours=" + nbJours +
-                ", tauxPriseEnCharge=" + tauxPriseEnCharge +
-                '}';
     }
 }

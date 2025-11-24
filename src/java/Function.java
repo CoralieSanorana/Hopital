@@ -291,7 +291,7 @@ public class Function{
                 identite, idretraite, iddeces, idmembre, societepriseencharge
             ) VALUES (
                 ?, CURRENT_TIMESTAMP, ?,
-                CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?, ?,
+                CURRENT_TIMESTAMP, NULL, ?, ?,
                 ?, ?, ?, ?, ?,
                 ?, ?, ?, ?, ?
             )
@@ -669,6 +669,22 @@ public class Function{
         }
         return null; // Si aucune vente trouvée
     }
+    public boolean update_datefin_ordonnance(String idordonnance,java.util.Date fin, Connection con) throws Exception{
+        String sql = "UPDATE med_ordonnance SET date_fin = ? WHERE id = ?";
+        boolean retour = false;
+        try{
+            PreparedStatement st = con.prepareStatement(sql);
+            st.setDate(1, new java.sql.Date(fin.getTime()));
+            st.setString(2,idordonnance);
+            if(st.executeUpdate() > 0){
+                retour = true;
+            }
+
+        } catch(Exception e){
+            throw e;
+        }
+        return retour;
+    }
 
 // mini fonctions manokatra Connection
     public User login(String nom,String pwd) throws Exception{
@@ -883,6 +899,7 @@ public class Function{
         }
         return montants;
     }
+    
 
 // fonctions utiles
     private java.util.Date getDateFromResultSet(ResultSet rs, String columnName) throws Exception {

@@ -74,9 +74,15 @@
                 return;
             }
         }
-    // diriger vers stock.jsp
-        response.sendRedirect("Stock.jsp");
-        return;
+    // update date_fin de ordonnance
+        if(fonction.update_datefin_ordonnance(idordonnance,datyPrevu,con)){
+        // diriger vers stock.jsp
+            response.sendRedirect("Stock.jsp");
+            return;
+        } else{
+            response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("UPDATE Date Fin Ordonnance IMPOSSIBLE", "UTF-8"));
+            return;
+        }
 
     } catch(Exception e){
         try { con.rollback(); } catch (SQLException ex) { throw ex; }

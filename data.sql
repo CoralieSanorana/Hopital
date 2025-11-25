@@ -70,3 +70,6 @@ SELECT
 FROM MED_ORDONNANCE ordo
 LEFT JOIN CLIENT cl       ON ordo.observation_soins = cl.id
 LEFT JOIN MED_MEDECIN med ON ordo.idmedecin = med.id;
+
+
+select count(*) from mvtstockfille where idmvtstock = 'MVTST764048846882';

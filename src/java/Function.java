@@ -1171,7 +1171,7 @@ public class Function{
         return id;
     }
 // Insert MvtStockFille using an existing Connection (follows project pattern)
-    public String set_MvtStockFille(Connection con, String idMvtStock,String idproduit, int sortie, String designation, double pu) throws Exception {
+    public String set_MvtStockFille(Connection con, String idMvtStock,String idproduit, double sortie, String designation, double pu) throws Exception {
         String id = null;
         PreparedStatement ps = null;
         try {
@@ -1183,13 +1183,13 @@ public class Function{
             ps.setString(1, id);
             ps.setString(2, idMvtStock);
             ps.setString(3, idproduit); // IDPRODUIT
-            ps.setInt(4, 0); // ENTREE
-            ps.setInt(5, sortie);
+            ps.setDouble(4, 0.0); // ENTREE
+            ps.setDouble(5, sortie);
             ps.setNull(6, java.sql.Types.VARCHAR); // IDVENTEDETAIL
             ps.setNull(7, java.sql.Types.VARCHAR); // IDTRANSFERTDETAIL
             ps.setDouble(8, pu);
             ps.setNull(9, java.sql.Types.VARCHAR); // MVTSRC
-            ps.setInt(10, 0); // RESTE
+            ps.setDouble(10, 0.0); // RESTE
             ps.setString(11, designation);
             ps.setNull(12, java.sql.Types.DATE); // DATEPEREMPTION
             ps.setNull(13, java.sql.Types.VARCHAR); // DATEPEREMPTIONLIB

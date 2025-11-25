@@ -16,6 +16,7 @@
 
         ordonnance = fonction.get_1ordonnance(idordonnance,con);
         if(ordonnance == null){
+            try { con.rollback(); } catch (SQLException ex) { throw ex; }
             response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("Ordonnance non trouver", "UTF-8"));
             return;
         }
@@ -30,6 +31,7 @@
     // prendre les med_ordonnances_fille
         Vector<MedOrdonnanceFille> ordonnanceFille = fonction.get_medordonnances_fille(idordonnance,con);
         if(idvente == null){
+            try { con.rollback(); } catch (SQLException ex) { throw ex; }
             response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("Vector Ordonnance fille VIDE", "UTF-8"));
             return;
         }
@@ -45,12 +47,15 @@
             String idventeDetaille = fonction.set_vente_details(con,idvente,idProduit,quantite,
             prix,designation,idmedecin);
             if(idventeDetaille == null){
+                try { con.rollback(); } catch (SQLException ex) { throw ex; }
                 response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("Insert vente detaille IMPOSSIBLE", "UTF-8"));
                 return;
             }
         }
+
         Vente vente = fonction.getVenteById(idvente,con);
         if(vente == null){
+            try { con.rollback(); } catch (SQLException ex) { throw ex; }
             response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("Vente Vide", "UTF-8"));
             return;
         }
@@ -58,19 +63,29 @@
         java.util.Date datyPrevu = vente.getDatyPrevu();
         String idMVTstock = fonction.set_MvtStock(con,idvente,datyPrevu);
         if(idMVTstock == null){
+            try { con.rollback(); } catch (SQLException ex) { throw ex; }
             response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("Insert MVT Stock IMPOSSIBLE", "UTF-8"));
             return;
         }
     
     // inserer MVT Stock fille
-        Vector<VenteDetails> venteDetails = fonction.get_VenteDetails(idvente);
+        
+        Vector<VenteDetails> venteDetails = fonction.get_VenteDetails(con,idvente);
+        if(venteDetails == null){
+            try { con.rollback(); } catch (SQLException ex) { throw ex; }
+            response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("Vente Detaille Vide", "UTF-8"));
+            return;
+        }
         for(VenteDetails vntD: venteDetails){
-            int sortie = (int)vntD.getQte();
+            double sortie = vntD.getQte();
             double pu = vntD.getPu();
             String idprod = vntD.getIdProduit();
             String designe = vntD.getDesignation();
+            out.println("vente detaille => Sortie: "+sortie+" PU: "+pu+" IDProduit: "+idprod+" Designation: "+designe+"\n");
             String idMVTstock_fille = fonction.set_MvtStockFille(con,idMVTstock,idprod,sortie,designe,pu) ;
+            out.println("ID MVT Stock Fille: "+idMVTstock_fille+"\n");
             if(idMVTstock_fille == null){
+                try { con.rollback(); } catch (SQLException ex) { throw ex; }
                 response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("Insert MVT Stock Fille IMPOSSIBLE", "UTF-8"));
                 return;
             }
@@ -78,9 +93,11 @@
     // update date_fin de ordonnance
         if(fonction.update_datefin_ordonnance(idordonnance,datyPrevu,con)){
         // diriger vers stock.jsp
-            response.sendRedirect("Stock.jsp");
+            con.commit();
+            response.sendRedirect("Stock.jsp?idmvt="+idMVTstock);
             return;
         } else{
+            try { con.rollback(); } catch (SQLException ex) { throw ex; }
             response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("UPDATE Date Fin Ordonnance IMPOSSIBLE", "UTF-8"));
             return;
         }

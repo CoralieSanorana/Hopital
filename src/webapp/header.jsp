@@ -19,7 +19,7 @@
                         <li><a class="dropdown-item" href="#">Something else here</a></li>
                     </ul>
                 </li>
-                <li class="nav-item"><a href="logout.jsp" class="nav-link">Se déconnecter</a></li>
+                <li class="nav-item"><a href="logout.jsp" class="nav-link">Se deconnecter</a></li>
             </ul>
             <form class="d-flex" role="search">
                 <input class="form-control me-2" type="search" placeholder="Search">

@@ -685,6 +685,43 @@ public class Function{
         }
         return retour;
     }
+    public Vector<Med_Ordonnance> get_ordonnances_nonLivrer(Connection con) throws Exception {
+        String sql = "SELECT * FROM med_ordonnance WHERE date_fin IS NULL ORDER BY daty DESC";
+
+        Vector<Med_Ordonnance> ordonnances = new Vector<>();
+
+        try (Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                Med_Ordonnance ord = new Med_Ordonnance();
+
+                ord.setId(rs.getString("ID"));
+                ord.setId_consultation(rs.getString("ID_CONSULTATION"));
+                ord.setDaty(getDateFromResultSet(rs, "DATY"));
+                ord.setNb_jours(rs.getString("NB_JOURS"));
+                ord.setDate_debut(getDateFromResultSet(rs, "DATE_DEBUT"));
+                ord.setDate_fin(getDateFromResultSet(rs, "DATE_FIN"));
+                ord.setObservation_s(rs.getString("OBSERVATION_SOINS"));
+                ord.setIdmedecin(rs.getString("IDMEDECIN"));
+
+                ord.setId_type_arret(rs.getString("ID_TYPE_ARRET"));
+                ord.setObservation(rs.getString("OBSERVATION"));
+                ord.setId_type_soins(rs.getString("ID_TYPE_SOINS"));
+                ord.setType(rs.getString("TYPE"));
+                ord.setEtat(rs.getInt("ETAT"));
+                ord.setIdentite(rs.getString("IDENTITE"));
+                ord.setIdretraite(rs.getString("IDRETRAITE"));
+                ord.setIddeces(rs.getString("IDDECES"));
+                ord.setIdmembre(rs.getString("IDMEMBRE"));
+                ord.setSocietepriseen(rs.getString("SOCIETEPRISEENCHARGE"));
+
+                ordonnances.add(ord);
+            }
+        }
+        return ordonnances;
+    }
+    
 
 // mini fonctions manokatra Connection
     public User login(String nom,String pwd) throws Exception{
@@ -773,6 +810,22 @@ public class Function{
         try{
             con = VanialaConnection.getConnection();
             ordonnances = get_medordonnances(con);
+
+        }catch (Exception e) {
+            throw e;
+        } finally{
+            if(con != null){
+                con.close();
+            }
+        }
+        return ordonnances;
+    }
+    public Vector<Med_Ordonnance> get_ordonnances_nonLivrer() throws Exception{
+        Vector<Med_Ordonnance> ordonnances = new Vector<>();
+        Connection con = null;
+        try{
+            con = VanialaConnection.getConnection();
+            ordonnances = get_ordonnances_nonLivrer(con);
 
         }catch (Exception e) {
             throw e;
@@ -920,7 +973,6 @@ public class Function{
             ps.setDouble(index, value);
         }
     }
-
 
     /* Fonction set vente */
     public String set_vente(Connection con ,String idClient, java.util.Date daty) throws Exception {
@@ -1119,7 +1171,7 @@ public class Function{
         return id;
     }
 // Insert MvtStockFille using an existing Connection (follows project pattern)
-    public String set_MvtStockFille(Connection con, String idMvtStock, int sortie, String designation, double pu) throws Exception {
+    public String set_MvtStockFille(Connection con, String idMvtStock,String idproduit, int sortie, String designation, double pu) throws Exception {
         String id = null;
         PreparedStatement ps = null;
         try {
@@ -1130,14 +1182,14 @@ public class Function{
             ps = con.prepareStatement(sql);
             ps.setString(1, id);
             ps.setString(2, idMvtStock);
-            ps.setNull(3, java.sql.Types.VARCHAR); // IDPRODUIT
-            ps.setDouble(4, 0.0); // ENTREE
-            ps.setDouble(5, sortie);
+            ps.setString(3, idproduit); // IDPRODUIT
+            ps.setInt(4, 0); // ENTREE
+            ps.setInt(5, sortie);
             ps.setNull(6, java.sql.Types.VARCHAR); // IDVENTEDETAIL
             ps.setNull(7, java.sql.Types.VARCHAR); // IDTRANSFERTDETAIL
             ps.setDouble(8, pu);
             ps.setNull(9, java.sql.Types.VARCHAR); // MVTSRC
-            ps.setDouble(10, 0.0); // RESTE
+            ps.setInt(10, 0); // RESTE
             ps.setString(11, designation);
             ps.setNull(12, java.sql.Types.DATE); // DATEPEREMPTION
             ps.setNull(13, java.sql.Types.VARCHAR); // DATEPEREMPTIONLIB
@@ -1154,12 +1206,12 @@ public class Function{
         return id;
     }
 // Wrapper that opens a Connection and delegates to the Connection-taking method
-    public String set_MvtStockFille(String idMvtStock, int sortie, String designation, double pu) throws Exception {
+    public String set_MvtStockFille(String idMvtStock ,String idproduit, int sortie, String designation, double pu) throws Exception {
         String id = null;
         Connection con = null;
         try {
             con = VanialaConnection.getConnection();
-            id = set_MvtStockFille(con, idMvtStock, sortie, designation, pu);
+            id = set_MvtStockFille(con, idMvtStock,idproduit, sortie, designation, pu);
         } catch (Exception e) {
             throw e;
         } finally {

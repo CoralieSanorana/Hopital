@@ -12,7 +12,7 @@
     
     try{
         Function fonction = new Function();
-        ordonnances = fonction.get_medordonnances();
+        ordonnances = fonction.get_ordonnances_nonLivrer();
     }catch (Exception e) {
         response.sendRedirect("login.jsp?error=" + e.getMessage());
     }

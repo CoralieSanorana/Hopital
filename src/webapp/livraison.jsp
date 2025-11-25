@@ -67,8 +67,9 @@
         for(VenteDetails vntD: venteDetails){
             int sortie = (int)vntD.getQte();
             double pu = vntD.getPu();
+            String idprod = vntD.getIdProduit();
             String designe = vntD.getDesignation();
-            String idMVTstock_fille = fonction.set_MvtStockFille(con,idMVTstock,sortie,designe,pu) ;
+            String idMVTstock_fille = fonction.set_MvtStockFille(con,idMVTstock,idprod,sortie,designe,pu) ;
             if(idMVTstock_fille == null){
                 response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("Insert MVT Stock Fille IMPOSSIBLE", "UTF-8"));
                 return;

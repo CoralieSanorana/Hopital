@@ -73,3 +73,51 @@ LEFT JOIN MED_MEDECIN med ON ordo.idmedecin = med.id;
 
 
 select count(*) from mvtstockfille where idmvtstock = 'MVTST764048846882';
+
+CREATE OR REPLACE VIEW MONTANT_STOCK AS
+SELECT
+    mf.IDPRODUIT,
+    SUM(NVL(mf.ENTREE,0)) AS ENTREE,
+    SUM(NVL(mf.SORTIE,0)) AS SORTIE,
+    SUM(NVL(mf.ENTREE,0)) - SUM(NVL(mf.SORTIE,0)) AS quantite,
+    SUM(NVL(mf.montantEntree,0)) AS montantEntree,
+    SUM(NVL(mf.montantSortie,0)) AS montantSortie,
+    NVL(ai.PU, 0) * (SUM(NVL(mf.ENTREE,0)) - SUM(NVL(mf.SORTIE,0))) AS montant,
+    m.IDMAGASIN,
+    MAX(m.DATY) AS daty
+FROM mvtStockFilleMontant mf
+JOIN MVTSTOCK m ON m.id = mf.IDMVTSTOCK AND m.ETAT >= 11  -- on garde le filtre
+JOIN AS_INGREDIENTS ai ON ai.ID = mf.IDPRODUIT
+GROUP BY mf.IDPRODUIT, ai.PU, m.IDMAGASIN;
+
+
+CREATE OR REPLACE VIEW V_ETATSTOCK_ING AS
+SELECT
+    p.ID                                            AS "ID",
+    p.LIBELLE                                       AS "IDPRODUITLIB",
+    p.CATEGORIEINGREDIENT                           AS "CATEGORIEINGREDIENT",
+    tp.DESCE                                        AS "IDTYPEPRODUITLIB",
+    NVL(ms.IDMAGASIN, 'MAG001')                     AS "IDMAGASIN",
+    mag.VAL                                         AS "IDMAGASINLIB",
+    NVL(ms.DATY, TO_DATE('01-01-2001','DD-MM-YYYY')) AS "DATEDERNMOUV", 
+    NVL(ms.quantite, 0)     AS "QUANTITE",
+    NVL(ms.entree, 0)       AS "ENTREE",
+    NVL(ms.sortie, 0)       AS "SORTIE",
+    NVL(ms.quantite, 0)     AS "RESTE",
+    p.UNITE                 AS "UNITE",
+    u.DESCE                 AS "IDUNITELIB",
+    NVL(p.PV, 0)            AS "PUVENTE",
+    mag.IDPOINT             AS "IDPOINT",
+    mag.IDTYPEMAGASIN       AS "IDTYPEMAGASIN",
+    NVL(p.SEUILMIN, 0)       AS "SEUILMIN",
+    NVL(p.SEUILMAX, 0)      AS "SEUILMAX",
+    NVL(ms.montantEntree, 0) AS "MONTANTENTREE",
+    NVL(ms.montantSortie, 0) AS "MONTANTSORTIE",
+    NVL(p.PU, 0)             AS "PU",
+    NVL(ms.montant, 0)       AS "MONTANTRESTE",
+    NVL(ms.DATY, TO_DATE('01-01-2001','DD-MM-YYYY')) AS "DATY"
+FROM AS_INGREDIENTS p
+LEFT JOIN MONTANT_STOCK ms ON ms.IDPRODUIT = p.ID
+LEFT JOIN CATEGORIEINGREDIENT tp ON p.CATEGORIEINGREDIENT = tp.ID
+LEFT JOIN MAGASINPOINT mag ON NVL(ms.IDMAGASIN, 'MAG001') = mag.ID
+LEFT JOIN AS_UNITE u ON p.UNITE = u.ID;

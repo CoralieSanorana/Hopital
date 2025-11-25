@@ -216,6 +216,13 @@
                     </div>
                 </div>
 
+                <!-- Bouton sauvegarde -->
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-save px-5">
+                        <i class="bi bi-check2-all"></i> Sauvegarder l'ordonnance
+                    </button>
+                </div>
+
                 <!-- Tableau des médicaments -->
                 <div class="table-responsive">
                     <table class="table table-medicaments">
@@ -257,12 +264,6 @@
                     </table>
                 </div>
 
-                <!-- Bouton sauvegarde -->
-                <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-save px-5">
-                        <i class="bi bi-check2-all"></i> Sauvegarder l'ordonnance
-                    </button>
-                </div>
             </form>
         </div>
     </div>

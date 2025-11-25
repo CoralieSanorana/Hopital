@@ -462,46 +462,42 @@ public class Function{
         return etats;
     }
     public Vector<EtatsStock> get_EtatStock(Connection con) throws Exception {
-        String sql = "SELECT * FROM V_ETATSTOCK_ING order by DATEDERNIERMOUVEMENT asc";
+        String sql = "SELECT * FROM V_ETATSTOCK_ING ORDER BY DATY DESC NULLS LAST";
         Vector<EtatsStock> etats = new Vector<>();
-        Statement stmt = null;
 
-        try {
-            stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
+        try (PreparedStatement ps = con.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 etats.add(new EtatsStock(
-                        rs.getString("ID"),
-                        rs.getString("IDPRODUITLIB"),
-                        rs.getString("CATEGORIEINGREDIENT"),
-                        rs.getString("IDTYPEPRODUITLIB"),
-                        rs.getString("IDMAGASIN"),
-                        rs.getString("IDMAGASINLIB"),
-                        rs.getDate("DATEDERNIERMOUVEMENT"),
-                        rs.getDouble("QUANTITE"),
-                        rs.getDouble("ENTREE"),
-                        rs.getDouble("SORTIE"),
-                        rs.getDouble("RESTE"),
-                        rs.getString("UNITE"),
-                        rs.getString("IDUNITELIB"),
-                        rs.getDouble("PUVENTE"),
-                        rs.getString("IDPOINT"),
-                        rs.getString("IDTYPEMAGASIN"),
-                        rs.getDouble("SEUILMIN"),
-                        rs.getDouble("SEUILMAX"),
-                        rs.getDouble("MONTANTENTREE"),
-                        rs.getDouble("MONTANTSORTIE"),
-                        rs.getDouble("PU"),
-                        rs.getDouble("MONTANTRESTE"),
-                        rs.getDate("DATY")
+                    rs.getString("ID"),
+                    rs.getString("IDPRODUITLIB"),
+                    rs.getString("CATEGORIEINGREDIENT"),
+                    rs.getString("IDTYPEPRODUITLIB"),
+                    rs.getString("IDMAGASIN"),
+                    rs.getString("IDMAGASINLIB"),
+                    rs.getDate("DATEDERNMOUV"),
+                    rs.getDouble("QUANTITE"),
+                    rs.getDouble("ENTREE"),
+                    rs.getDouble("SORTIE"),
+                    rs.getDouble("RESTE"),
+                    rs.getString("UNITE"),
+                    rs.getString("IDUNITELIB"),
+                    rs.getDouble("PUVENTE"),
+                    rs.getString("IDPOINT"),
+                    rs.getString("IDTYPEMAGASIN"),
+                    rs.getDouble("SEUILMIN"),
+                    rs.getDouble("SEUILMAX"),
+                    rs.getDouble("MONTANTENTREE"),
+                    rs.getDouble("MONTANTSORTIE"),
+                    rs.getDouble("PU"),
+                    rs.getDouble("MONTANTRESTE"),
+                    rs.getDate("DATY")
                 ));
             }
 
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if (stmt != null) stmt.close();
+        } catch (SQLException e) {
+            throw new Exception("Échec du chargement de l'état de stock : " + e.getMessage(), e);
         }
 
         return etats;
@@ -721,7 +717,176 @@ public class Function{
         }
         return ordonnances;
     }
-    
+    public String set_vente(Connection con ,String idClient, java.util.Date daty) throws Exception {
+        String idVente = null;
+        PreparedStatement ps = null;
+        try {
+            long now = System.currentTimeMillis();
+            // ID format: VNT + 12 digits based on current time (keeps format like VNT002954105735)
+            idVente = "VNT" + String.format("%012d", now % 1000000000000L);
+            String sql = "INSERT INTO vente (id, idclient, daty, datyprevu,idmagasin) VALUES (?, ?, ?, ?, ?)";
+            ps = con.prepareStatement(sql);
+            ps.setString(1, idVente);
+            ps.setString(2, idClient);
+            if (daty != null) ps.setTimestamp(3, new java.sql.Timestamp(daty.getTime()));
+            else ps.setTimestamp(3, new java.sql.Timestamp(System.currentTimeMillis()));
+            // datyprevu = now()
+            ps.setTimestamp(4, new java.sql.Timestamp(System.currentTimeMillis()));
+            ps.setString(5, "TEST");
+
+            ps.executeUpdate();
+
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (ps != null) ps.close();
+        }
+
+        return idVente;
+    }
+    public String set_vente_details(Connection con, String idVente, String idProduit, double quantite, double pu,
+    String designation, String idMedecin) throws Exception {
+        String idDetail = null;
+        PreparedStatement ps = null;
+        try {
+            long now = System.currentTimeMillis();
+            idDetail = "VTD" + String.format("%012d", now % 1000000000000L);
+
+            String sql = "INSERT INTO vente_details (id, idvente, idproduit, idorigine, qte, pu, remise, tva, puachat, puvente, iddevise, tauxdechange, designation, compte, purevient, idacte, remisemontant, idmedecin) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            ps = con.prepareStatement(sql);
+            ps.setString(1, idDetail);
+            ps.setString(2, idVente);
+            ps.setString(3, idProduit);
+            ps.setNull(4, java.sql.Types.VARCHAR); // idorigine unknown here
+            ps.setDouble(5, quantite);
+            ps.setDouble(6, pu);
+            ps.setDouble(7, 0.0); // remise
+            ps.setDouble(8, 0.0); // tva
+            ps.setDouble(9, 0.0); // puachat
+            ps.setDouble(10, 0.0); // puvente
+            ps.setNull(11, java.sql.Types.VARCHAR); // iddevise
+            ps.setDouble(12, 0.0); // tauxdechange
+            ps.setString(13, designation);
+            ps.setNull(14, java.sql.Types.VARCHAR); // compte
+            ps.setDouble(15, 0.0); // purevient
+            ps.setNull(16, java.sql.Types.VARCHAR); // idacte
+            ps.setDouble(17, 0.0); // remisemontant
+            ps.setString(18, idMedecin);
+
+            ps.executeUpdate();
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (ps != null) ps.close();
+        }
+        return idDetail;
+    }
+    public Vector<VenteDetails> get_VenteDetails(Connection con, String idVente) throws Exception {
+        String sql = "SELECT * FROM vente_details WHERE idvente = ?";
+        Vector<VenteDetails> details = new Vector<>();
+        PreparedStatement ps = null;
+
+        try {
+            ps = con.prepareStatement(sql);
+            ps.setString(1, idVente);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                details.add(new VenteDetails(
+                        rs.getString("ID"),
+                        rs.getString("IDVENTE"),
+                        rs.getString("IDPRODUIT"),
+                        rs.getString("IDORIGINE"),
+                        rs.getDouble("QTE"),
+                        rs.getDouble("PU"),
+                        rs.getDouble("REMISE"),
+                        rs.getDouble("TVA"),
+                        rs.getDouble("PUACHAT"),
+                        rs.getDouble("PUVENTE"),
+                        rs.getString("IDDEVISE"),
+                        rs.getDouble("TAUXDECHANGE"),
+                        rs.getString("DESIGNATION"),
+                        rs.getString("COMPTE"),
+                        rs.getDouble("PUREVIENT"),
+                        rs.getString("IDACTE"),
+                        rs.getDouble("REMISEMONTANT"),
+                        rs.getString("IDMEDECIN")
+                ));
+            }
+
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (ps != null) ps.close();
+        }
+
+        return details;
+    }
+    public String set_MvtStock(Connection con, String idVente, java.util.Date daty) throws Exception {
+        String idMvt = null;
+        PreparedStatement ps = null;
+        try {
+            long now = System.currentTimeMillis();
+            idMvt = "MVTST" + String.format("%012d", now % 1000000000000L);
+
+            String sql = "INSERT INTO MVTSTOCK (ID, DESIGNATION, IDMAGASIN, IDVENTE, IDTRANSFERT, IDTYPEMVSTOCK, DATY, ETAT, IDPOINT, IDOBJET, FABPRECEDENT, SOURCE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            ps = con.prepareStatement(sql);
+            ps.setString(1, idMvt);
+            ps.setString(2, "Mouvement relatif ...");
+            ps.setString(3, "PHARM004"); // magasin par défaut
+            ps.setString(4, idVente);
+            ps.setNull(5, java.sql.Types.VARCHAR); // IDTRANSFERT
+            ps.setNull(6, java.sql.Types.VARCHAR); // IDTYPEMVSTOCK
+            if (daty != null) ps.setTimestamp(7, new java.sql.Timestamp(daty.getTime())); else ps.setTimestamp(7, new java.sql.Timestamp(System.currentTimeMillis()));
+            ps.setInt(8, 11); // ETAT
+            ps.setNull(9, java.sql.Types.VARCHAR); // IDPOINT
+            ps.setNull(10, java.sql.Types.VARCHAR); // IDOBJET
+            ps.setNull(11, java.sql.Types.VARCHAR); // FABPRECEDENT
+            ps.setNull(12, java.sql.Types.VARCHAR); // SOURCE
+
+            ps.executeUpdate();
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (ps != null) ps.close();
+        }
+        return idMvt;
+    }
+    public String set_MvtStockFille(Connection con, String idMvtStock,String idproduit, double sortie, String designation, double pu) throws Exception {
+        String id = null;
+        PreparedStatement ps = null;
+        try {
+            long now = System.currentTimeMillis();
+            id = "MVTSFI" + String.format("%012d", now % 1000000000000L);
+
+            String sql = "INSERT INTO MVTSTOCKFILLE (ID, IDMVTSTOCK, IDPRODUIT, ENTREE, SORTIE, IDVENTEDETAIL, IDTRANSFERTDETAIL, PU, MVTSRC, RESTE, DESIGNATION, DATEPEREMPTION, DATEPEREMPTIONLIB, SOURCE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            ps = con.prepareStatement(sql);
+            ps.setString(1, id);
+            ps.setString(2, idMvtStock);
+            ps.setString(3, idproduit); // IDPRODUIT
+            ps.setDouble(4, 0.0); // ENTREE
+            ps.setDouble(5, sortie);
+            ps.setNull(6, java.sql.Types.VARCHAR); // IDVENTEDETAIL
+            ps.setNull(7, java.sql.Types.VARCHAR); // IDTRANSFERTDETAIL
+            ps.setDouble(8, pu);
+            ps.setNull(9, java.sql.Types.VARCHAR); // MVTSRC
+            ps.setDouble(10, 0.0); // RESTE
+            ps.setString(11, designation);
+            ps.setNull(12, java.sql.Types.DATE); // DATEPEREMPTION
+            ps.setNull(13, java.sql.Types.VARCHAR); // DATEPEREMPTIONLIB
+            ps.setNull(14, java.sql.Types.VARCHAR); // SOURCE
+
+            ps.executeUpdate();
+
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (ps != null) ps.close();
+        }
+
+        return id;
+    }
+
 
 // mini fonctions manokatra Connection
     public User login(String nom,String pwd) throws Exception{
@@ -952,9 +1117,90 @@ public class Function{
         }
         return montants;
     }
-    
+    public Medicament get_1medicament(String idmedicament) throws Exception{
+        Medicament medicament = null;
+        Connection con = null;
+        try{
+            con = VanialaConnection.getConnection();
+            medicament = get_1medicament(idmedicament,con);
 
-// fonctions utiles
+        }catch (Exception e) {
+            throw e;
+        } finally{
+            if(con != null){
+                con.close();
+            }
+        }
+        return medicament;
+    }
+    public String set_vente(String idClient, java.util.Date daty) throws Exception {
+        String id = null;
+        Connection con = null;
+        try {
+            con = VanialaConnection.getConnection();
+            id = set_vente(con, idClient, daty);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (con != null) con.close();
+        }
+        return id;
+    }
+    public String set_vente_details(String idVente, String idProduit, double quantite, double pu,
+                                     String designation, String idMedecin) throws Exception {
+        String id = null;
+        Connection con = null;
+        try {
+            con = VanialaConnection.getConnection();
+            id = set_vente_details(con, idVente, idProduit, quantite, pu, designation, idMedecin);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (con != null) con.close();
+        }
+        return id;
+    }
+    public Vector<VenteDetails> get_VenteDetails(String idVente) throws Exception {
+        Vector<VenteDetails> details = new Vector<>();
+        Connection con = null;
+        try {
+            con = VanialaConnection.getConnection();
+            details = get_VenteDetails(con, idVente);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (con != null) con.close();
+        }
+        return details;
+    }   
+    public String set_MvtStock(String idVente, java.util.Date daty) throws Exception {
+        String id = null;
+        Connection con = null;
+        try {
+            con = VanialaConnection.getConnection();
+            id = set_MvtStock(con, idVente, daty);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (con != null) con.close();
+        }
+        return id;
+    }
+    public String set_MvtStockFille(String idMvtStock ,String idproduit, int sortie, String designation, double pu) throws Exception {
+        String id = null;
+        Connection con = null;
+        try {
+            con = VanialaConnection.getConnection();
+            id = set_MvtStockFille(con, idMvtStock,idproduit, sortie, designation, pu);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (con != null) con.close();
+        }
+        return id;
+    }
+
+    // fonctions utiles
     private java.util.Date getDateFromResultSet(ResultSet rs, String columnName) throws Exception {
         java.sql.Date sqlDate = rs.getDate(columnName);
         return sqlDate != null ? new java.util.Date(sqlDate.getTime()) : null;
@@ -974,249 +1220,4 @@ public class Function{
         }
     }
 
-    /* Fonction set vente */
-    public String set_vente(Connection con ,String idClient, java.util.Date daty) throws Exception {
-        String idVente = null;
-        PreparedStatement ps = null;
-        try {
-            long now = System.currentTimeMillis();
-            // ID format: VNT + 12 digits based on current time (keeps format like VNT002954105735)
-            idVente = "VNT" + String.format("%012d", now % 1000000000000L);
-            String sql = "INSERT INTO vente (id, idclient, daty, datyprevu,idmagasin) VALUES (?, ?, ?, ?, ?)";
-            ps = con.prepareStatement(sql);
-            ps.setString(1, idVente);
-            ps.setString(2, idClient);
-            if (daty != null) ps.setTimestamp(3, new java.sql.Timestamp(daty.getTime()));
-            else ps.setTimestamp(3, new java.sql.Timestamp(System.currentTimeMillis()));
-            // datyprevu = now()
-            ps.setTimestamp(4, new java.sql.Timestamp(System.currentTimeMillis()));
-            ps.setString(5, "TEST");
-
-            ps.executeUpdate();
-
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if (ps != null) ps.close();
-        }
-
-        return idVente;
-    }
-/* Mini fonction de set_vente */
-    public String set_vente(String idClient, java.util.Date daty) throws Exception {
-        String id = null;
-        Connection con = null;
-        try {
-            con = VanialaConnection.getConnection();
-            id = set_vente(con, idClient, daty);
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if (con != null) con.close();
-        }
-        return id;
-    }
-// Insertion dans VenteDetails
-    public String set_vente_details(Connection con, String idVente, String idProduit, double quantite, double pu,
-    String designation, String idMedecin) throws Exception {
-        String idDetail = null;
-        PreparedStatement ps = null;
-        try {
-            long now = System.currentTimeMillis();
-            idDetail = "VTD" + String.format("%012d", now % 1000000000000L);
-
-            String sql = "INSERT INTO vente_details (id, idvente, idproduit, idorigine, qte, pu, remise, tva, puachat, puvente, iddevise, tauxdechange, designation, compte, purevient, idacte, remisemontant, idmedecin) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            ps = con.prepareStatement(sql);
-            ps.setString(1, idDetail);
-            ps.setString(2, idVente);
-            ps.setString(3, idProduit);
-            ps.setNull(4, java.sql.Types.VARCHAR); // idorigine unknown here
-            ps.setDouble(5, quantite);
-            ps.setDouble(6, pu);
-            ps.setDouble(7, 0.0); // remise
-            ps.setDouble(8, 0.0); // tva
-            ps.setDouble(9, 0.0); // puachat
-            ps.setDouble(10, 0.0); // puvente
-            ps.setNull(11, java.sql.Types.VARCHAR); // iddevise
-            ps.setDouble(12, 0.0); // tauxdechange
-            ps.setString(13, designation);
-            ps.setNull(14, java.sql.Types.VARCHAR); // compte
-            ps.setDouble(15, 0.0); // purevient
-            ps.setNull(16, java.sql.Types.VARCHAR); // idacte
-            ps.setDouble(17, 0.0); // remisemontant
-            ps.setString(18, idMedecin);
-
-            ps.executeUpdate();
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if (ps != null) ps.close();
-        }
-        return idDetail;
-    }
-/* mini Set_vente_details */
-    public String set_vente_details(String idVente, String idProduit, double quantite, double pu,
-                                     String designation, String idMedecin) throws Exception {
-        String id = null;
-        Connection con = null;
-        try {
-            con = VanialaConnection.getConnection();
-            id = set_vente_details(con, idVente, idProduit, quantite, pu, designation, idMedecin);
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if (con != null) con.close();
-        }
-        return id;
-    }
-// Récupère tous les VenteDetails pour un idVente donné (avec Connection)
-    public Vector<VenteDetails> get_VenteDetails(Connection con, String idVente) throws Exception {
-        String sql = "SELECT * FROM vente_details WHERE idvente = ?";
-        Vector<VenteDetails> details = new Vector<>();
-        PreparedStatement ps = null;
-
-        try {
-            ps = con.prepareStatement(sql);
-            ps.setString(1, idVente);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                details.add(new VenteDetails(
-                        rs.getString("ID"),
-                        rs.getString("IDVENTE"),
-                        rs.getString("IDPRODUIT"),
-                        rs.getString("IDORIGINE"),
-                        rs.getDouble("QTE"),
-                        rs.getDouble("PU"),
-                        rs.getDouble("REMISE"),
-                        rs.getDouble("TVA"),
-                        rs.getDouble("PUACHAT"),
-                        rs.getDouble("PUVENTE"),
-                        rs.getString("IDDEVISE"),
-                        rs.getDouble("TAUXDECHANGE"),
-                        rs.getString("DESIGNATION"),
-                        rs.getString("COMPTE"),
-                        rs.getDouble("PUREVIENT"),
-                        rs.getString("IDACTE"),
-                        rs.getDouble("REMISEMONTANT"),
-                        rs.getString("IDMEDECIN")
-                ));
-            }
-
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if (ps != null) ps.close();
-        }
-
-        return details;
-    }
-// get_VenteDetails sans connection
-    public Vector<VenteDetails> get_VenteDetails(String idVente) throws Exception {
-        Vector<VenteDetails> details = new Vector<>();
-        Connection con = null;
-        try {
-            con = VanialaConnection.getConnection();
-            details = get_VenteDetails(con, idVente);
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if (con != null) con.close();
-        }
-        return details;
-    }   
-// Insertion dans MvtStock (avec Connection) — seuls idVente, daty et designation sont fournis; autres colonnes = NULL
-    public String set_MvtStock(Connection con, String idVente, java.util.Date daty) throws Exception {
-        String idMvt = null;
-        PreparedStatement ps = null;
-        try {
-            long now = System.currentTimeMillis();
-            idMvt = "MVTST" + String.format("%012d", now % 1000000000000L);
-
-            String sql = "INSERT INTO MVTSTOCK (ID, DESIGNATION, IDMAGASIN, IDVENTE, IDTRANSFERT, IDTYPEMVSTOCK, DATY, ETAT, IDPOINT, IDOBJET, FABPRECEDENT, SOURCE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            ps = con.prepareStatement(sql);
-            ps.setString(1, idMvt);
-            ps.setString(2, "Mouvement relatif ...");
-            ps.setString(3, "PHARM004"); // magasin par défaut
-            ps.setString(4, idVente);
-            ps.setNull(5, java.sql.Types.VARCHAR); // IDTRANSFERT
-            ps.setNull(6, java.sql.Types.VARCHAR); // IDTYPEMVSTOCK
-            if (daty != null) ps.setTimestamp(7, new java.sql.Timestamp(daty.getTime())); else ps.setTimestamp(7, new java.sql.Timestamp(System.currentTimeMillis()));
-            ps.setNull(8, java.sql.Types.NUMERIC); // ETAT
-            ps.setNull(9, java.sql.Types.VARCHAR); // IDPOINT
-            ps.setNull(10, java.sql.Types.VARCHAR); // IDOBJET
-            ps.setNull(11, java.sql.Types.VARCHAR); // FABPRECEDENT
-            ps.setNull(12, java.sql.Types.VARCHAR); // SOURCE
-
-            ps.executeUpdate();
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if (ps != null) ps.close();
-        }
-        return idMvt;
-    }
-// Wrapper sans Connection
-    public String set_MvtStock(String idVente, java.util.Date daty) throws Exception {
-        String id = null;
-        Connection con = null;
-        try {
-            con = VanialaConnection.getConnection();
-            id = set_MvtStock(con, idVente, daty);
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if (con != null) con.close();
-        }
-        return id;
-    }
-// Insert MvtStockFille using an existing Connection (follows project pattern)
-    public String set_MvtStockFille(Connection con, String idMvtStock,String idproduit, double sortie, String designation, double pu) throws Exception {
-        String id = null;
-        PreparedStatement ps = null;
-        try {
-            long now = System.currentTimeMillis();
-            id = "MVTSFI" + String.format("%012d", now % 1000000000000L);
-
-            String sql = "INSERT INTO MVTSTOCKFILLE (ID, IDMVTSTOCK, IDPRODUIT, ENTREE, SORTIE, IDVENTEDETAIL, IDTRANSFERTDETAIL, PU, MVTSRC, RESTE, DESIGNATION, DATEPEREMPTION, DATEPEREMPTIONLIB, SOURCE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            ps = con.prepareStatement(sql);
-            ps.setString(1, id);
-            ps.setString(2, idMvtStock);
-            ps.setString(3, idproduit); // IDPRODUIT
-            ps.setDouble(4, 0.0); // ENTREE
-            ps.setDouble(5, sortie);
-            ps.setNull(6, java.sql.Types.VARCHAR); // IDVENTEDETAIL
-            ps.setNull(7, java.sql.Types.VARCHAR); // IDTRANSFERTDETAIL
-            ps.setDouble(8, pu);
-            ps.setNull(9, java.sql.Types.VARCHAR); // MVTSRC
-            ps.setDouble(10, 0.0); // RESTE
-            ps.setString(11, designation);
-            ps.setNull(12, java.sql.Types.DATE); // DATEPEREMPTION
-            ps.setNull(13, java.sql.Types.VARCHAR); // DATEPEREMPTIONLIB
-            ps.setNull(14, java.sql.Types.VARCHAR); // SOURCE
-
-            ps.executeUpdate();
-
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if (ps != null) ps.close();
-        }
-
-        return id;
-    }
-// Wrapper that opens a Connection and delegates to the Connection-taking method
-    public String set_MvtStockFille(String idMvtStock ,String idproduit, int sortie, String designation, double pu) throws Exception {
-        String id = null;
-        Connection con = null;
-        try {
-            con = VanialaConnection.getConnection();
-            id = set_MvtStockFille(con, idMvtStock,idproduit, sortie, designation, pu);
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if (con != null) con.close();
-        }
-        return id;
-    }
 }

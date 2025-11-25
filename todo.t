@@ -122,20 +122,68 @@
 
         ********** livraison.jsp **********
         - PAGE:
-            - [] creer page livraison.jsp
-                . [] recuperer les informations venant de ordonnances.jsp
-                . [] 
+            - [ok] creer page livraison.jsp
+                . [ok] recuperer les informations venant de ordonnances.jsp{
+                    -[ok] idmedecin
+                    -[ok] idpatient
+                    -[ok] les medicaments choisis
+                   }
+                . [ok] insere une nouvelle Vente 
+                . [ok] insere tous les VenteDetaille
+                . [ok] insere une nouvelle MvtStock 
+                . [ok] insere tous les MvtStockFille 
+                . [ok] update la date fin de ordonnance liverer
+                ->  diriger vers Stock.jsp 
         - FONCTION:
             [ok] get_1ordonnance()
+            [ok] set_vente()
+            [ok] set_vente_details()
+            [ok] get_VenteDetails()
+            [ok] update_datefin_ordonnance()
+            [ok] getVenteById()
+            [ok] get_VenteDetails()
+            [ok] set_MvtStock()
+            [ok] set_MvtStockFille()
+
+        - JAVA:
+            [OK] EtatStock.java
+            [ok] Vente.java
+            [ok] VenteDetaille.java
+            [ok] MvtStock.java
+            [ok] MvtStockFille.java
+
+        ******* Stock.jsp ******
+        -PAGE:
+            - [ok] creer page Stock.jsp
+                . [ok] apres livraison, calculer le reste de stockage
+                . [ok] recupere les donnees dans V_ETATSTOCK_ING
+                . [OK] afficher etat de stock de chaque medicament
+        - FONCTION:
+            [OK] get_EtatStock
+
+
+        ******* Entree.jsp *******
+        -PAGE:
+            [] creer page Entree.jsp
+                [] afficher tous les medicaments{
+                    [] mettre input checkbox
+                    [] mettre input numbre (nbre entree)
+                    [] mettre date entree
+                    [] bouton sauvegarder_Entree
+                    -> diriger vers traite_entree.jsp
+                }
+        -FONCTION:
+            [] insert_Entree()
+
+        
+        ****** traite_entree.jsp *********
+        -PAGE:
+            [] creer page traite_entree.jsp
+            [] recuperer les informations venant de Entree.jsp
+            [] appel de la fonction insert_Entree()
 
 
 
-
-        - [] creer page inventaire de stock
-            . [] apres livraison, calculer le reste de stockage
-            . [] voir etat theorique et etat reel du stockage{
-                * [] en cas de desequilibre ( afficher ce qui se passe)
-            }
-            **** Un arreter ******
+                **** Un arreter ******
                 . [] est le fait de faire une observation profonde de etat de stockage
                 . [] voir si il y a manque ou surplus de stock

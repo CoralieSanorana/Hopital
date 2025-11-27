@@ -852,7 +852,7 @@ public class Function{
         }
         return idMvt;
     }
-    public String set_MvtStockFille(Connection con, String idMvtStock,String idproduit, double sortie, String designation, double pu) throws Exception {
+    public String set_MvtStockFille(Connection con, String idMvtStock,String idproduit, double entree, double sortie, String designation, double pu) throws Exception {
         String id = null;
         PreparedStatement ps = null;
         try {
@@ -864,7 +864,7 @@ public class Function{
             ps.setString(1, id);
             ps.setString(2, idMvtStock);
             ps.setString(3, idproduit); // IDPRODUIT
-            ps.setDouble(4, 0.0); // ENTREE
+            ps.setDouble(4, entree); // ENTREE
             ps.setDouble(5, sortie);
             ps.setNull(6, java.sql.Types.VARCHAR); // IDVENTEDETAIL
             ps.setNull(7, java.sql.Types.VARCHAR); // IDTRANSFERTDETAIL
@@ -885,6 +885,93 @@ public class Function{
         }
 
         return id;
+    }
+    public String insert_inventaire(Connection con, Inventaire inventaire) throws Exception{
+        String sql = "INSERT INTO inventaire (daty,designation,idmagasin,etat,remarque,idcategorie,idpoint) VALUES(?, ?, ?, ?, ?, ?, ?)";
+        PreparedStatement ps = null;
+        try {
+            ps = con.prepareStatement(sql);
+            ps.setDate(1,new java.sql.Date(inventaire.getDaty().getTime()));
+            ps.setString(2,inventaire.getDesignation());
+            ps.setString(3, inventaire.getIdmagasin());
+            ps.setInt(4, inventaire.getEtat());
+            ps.setString(5, inventaire.getRemarque());
+            ps.setString(6, inventaire.getIdcategorie());
+            ps.setString(7, inventaire.getIdpoint());
+
+            int affectedRows = ps.executeUpdate();
+
+            if (affectedRows == 0) {
+                throw new Exception("Échec de l'insertion de l'inventaire, aucune ligne insérée.");
+            }
+            try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    return generatedKeys.getString(1); 
+                } else {
+                    throw new Exception("Insertion réussie mais impossible de récupérer l'ID généré.");
+                }
+            }
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+    public String insert_inventairefille(Connection con, InventaireFille invf) throws Exception{
+        String sql = "INSERT INTO inventairefille (idinventaire,idproduit,explication,quantitetheorique,quantite,idjauge,dateperemption,dateperemptionlib) VALUES(?, ?, ?, ?, ?, ?, ? ,?)";
+        PreparedStatement ps = null;
+        try {
+            ps = con.prepareStatement(sql);
+            ps.setString(1,invf.getIdInventaire());
+            ps.setString(2,invf.getIdproduit());
+            ps.setString(3, invf.getExplication());
+            ps.setDouble(4, invf.getQuantite_theorique());
+            ps.setDouble(5, invf.getQuantite());
+            ps.setString(6, invf.getIdjauge());
+            ps.setDate(7, new java.sql.Date(invf.getDateperemptiom().getTime()));
+            ps.setString(8, invf.getDateperemptionLib());
+
+            int affectedRows = ps.executeUpdate();
+
+            if (affectedRows == 0) {
+                throw new Exception("Échec de l'insertion de l'inventaire, aucune ligne insérée.");
+            }
+            try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    return generatedKeys.getString(1); 
+                } else {
+                    throw new Exception("Insertion réussie mais impossible de récupérer l'ID généré.");
+                }
+            }
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+    public Vector<InventaireFille_ING> get_inventairefille_ing(Connection con, String idInv) throws Exception{
+        String sql = "SELECT * FROM inventaire_fille_cpl_ing WHERE idinventaire = ?";
+        Vector<InventaireFille_ING> L_invf_ing = new Vector<>();
+        PreparedStatement st = null;
+        try {
+            st = con.prepareStatement(sql);
+            st.setString(1,idInv);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                L_invf_ing.add(new InventaireFille_ING(
+                    rs.getString("id"),
+                    rs.getString("idinventaire"),
+                    rs.getString("idproduit"),
+                    rs.getString("idproduitlib"),
+                    rs.getString("explication"),
+                    rs.getDouble("quantitetheorique"),
+                    rs.getDouble("quantite"),
+                    new java.util.Date(rs.getDate("").getTime()),
+                    rs.getString("idmagasin"),
+                    rs.getString("idjauge"),
+                    rs.getInt("etat")
+                ));
+            }
+        } catch (Exception e) {
+            throw e;
+        }
+        return L_invf_ing;
     }
 
 
@@ -1186,12 +1273,12 @@ public class Function{
         }
         return id;
     }
-    public String set_MvtStockFille(String idMvtStock ,String idproduit, int sortie, String designation, double pu) throws Exception {
+    public String set_MvtStockFille(String idMvtStock ,String idproduit,double entree ,double sortie, String designation, double pu) throws Exception {
         String id = null;
         Connection con = null;
         try {
             con = VanialaConnection.getConnection();
-            id = set_MvtStockFille(con, idMvtStock,idproduit, sortie, designation, pu);
+            id = set_MvtStockFille(con, idMvtStock,idproduit, entree, sortie, designation, pu);
         } catch (Exception e) {
             throw e;
         } finally {
@@ -1199,6 +1286,46 @@ public class Function{
         }
         return id;
     }
+    public String insert_inventaire(Inventaire inventaire) throws Exception{
+        String id = null;
+        Connection con = null;
+        try {
+            con = VanialaConnection.getConnection();
+            id = insert_inventaire(con, inventaire);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (con != null) con.close();
+        }
+        return id;
+    }    
+    public String insert_inventairefille(model.InventaireFille invf) throws Exception{
+        String id = null;
+        Connection con = null;
+        try {
+            con = VanialaConnection.getConnection();
+            id = insert_inventairefille(con, invf);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (con != null) con.close();
+        }
+        return id;
+    }  
+    public Vector<InventaireFille_ING> get_inventairefille_ing(String idInv) throws Exception {
+        Vector<InventaireFille_ING> invf_ing = new Vector<>();
+        Connection con = null;
+        try {
+            con = VanialaConnection.getConnection();
+            invf_ing = get_inventairefille_ing(con, idInv);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (con != null) con.close();
+        }
+        return invf_ing;
+    }   
+    
 
     // fonctions utiles
     private java.util.Date getDateFromResultSet(ResultSet rs, String columnName) throws Exception {

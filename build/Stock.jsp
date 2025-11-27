@@ -56,11 +56,11 @@
             width: 100% !important;
             table-layout: fixed;
         }
-th, td {
-    white-space: normal;      /* Permet le retour à la ligne */
-    word-wrap: break-word;    /* Coupe et renvoie à la ligne */
-    font-size: 13px;
-}
+        th, td {
+            white-space: normal;      /* Permet le retour à la ligne */
+            word-wrap: break-word;    /* Coupe et renvoie à la ligne */
+            font-size: 13px;
+        }
 
 
         .table thead th {

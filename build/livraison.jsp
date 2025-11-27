@@ -78,12 +78,11 @@
         }
         for(VenteDetails vntD: venteDetails){
             double sortie = vntD.getQte();
+            double entree = 0.0;
             double pu = vntD.getPu();
             String idprod = vntD.getIdProduit();
             String designe = vntD.getDesignation();
-            out.println("vente detaille => Sortie: "+sortie+" PU: "+pu+" IDProduit: "+idprod+" Designation: "+designe+"\n");
-            String idMVTstock_fille = fonction.set_MvtStockFille(con,idMVTstock,idprod,sortie,designe,pu) ;
-            out.println("ID MVT Stock Fille: "+idMVTstock_fille+"\n");
+            String idMVTstock_fille = fonction.set_MvtStockFille(con,idMVTstock,idprod,entree,sortie,designe,pu) ;
             if(idMVTstock_fille == null){
                 try { con.rollback(); } catch (SQLException ex) { throw ex; }
                 response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("Insert MVT Stock Fille IMPOSSIBLE", "UTF-8"));

@@ -75,7 +75,6 @@
                     . [ok] ajouter un input number(pour prendre la quantite)
                     . [ok] ajouter un input text (pour les descriptions)
                 }
-            . [] daty, date debut, date fin
             }
             . [ok] sauvegarder les ordonnances saisi
             . [ok] diriger les informations vers traitement.jsp
@@ -164,26 +163,65 @@
 
         ******* Entree.jsp *******
         -PAGE:
-            [] creer page Entree.jsp
-                [] afficher tous les medicaments{
-                    [] mettre input checkbox
-                    [] mettre input numbre (nbre entree)
-                    [] mettre date entree
-                    [] bouton sauvegarder_Entree
+            [ok] creer page Entree.jsp
+                [ok] afficher tous les medicaments{
+                    [ok] mettre input checkbox
+                    [ok] mettre input numbre (nbre entree)
+                    [ok] mettre date entree
+                    [ok] bouton sauvegarder_Entree
                     -> diriger vers traite_entree.jsp
                 }
-        -FONCTION:
-            [] insert_Entree()
 
         
         ****** traite_entree.jsp *********
         -PAGE:
-            [] creer page traite_entree.jsp
-            [] recuperer les informations venant de Entree.jsp
-            [] appel de la fonction insert_Entree()
+            [ok] creer page traite_entree.jsp
+            [ok] recuperer les informations venant de Entree.jsp
+            [ok] appel de fonction
+                .[ok] set_MvtStock()
+                .[ok] set_MvtStockFille()
 
 
+        **** arreter.jsp ******
+        -PAGE:
+            [ok] creer page arreter.jsp
+            [ok] date de arretage
+            [ok] afficher les medicaments et etat de stockage{
+                [ok] medicament
+                [ok] quantite logiciel
+                [ok] quantite reelle (input number)
+            }
+            [ok] bouton ajustement
+            --> diriger vers traite_arretage.jsp
 
-                **** Un arreter ******
-                . [] est le fait de faire une observation profonde de etat de stockage
-                . [] voir si il y a manque ou surplus de stock
+        -FONCTION:
+            [ok] insert_inventaire()
+            [ok] insert_inventairefille()
+            [ok] get_inventairefille_ing()
+
+        - JAVA:
+            [ok] Iventaire.java
+            [ok] IventaireFille.java
+            [ok] IventaireFille_ING.java
+
+        
+        ****** traite_arretage.jsp ********
+        -PAGE:
+            [] creer page traite_arretage.jsp
+            [] recuperer les informations venant de arreter.jsp
+            [] creer un nouveau inventaire a la date actuelle
+            [] creer les inventairefille pour chaque medicament{
+                [] donner quantite logiciel
+                [] donner quantite reelle
+            }
+            (DANS le cas ou quantite reelle != quantite logiciel){
+                [] ajouter un mouvement de contrage{
+                    [] inserer un nouveau mouvement
+                    [] inserer les MvtStockFille pour chaque contrage{
+                        si logiciel > reelle  =  type sortie
+                        si logiciel < reelle  = type entree
+                    }
+                }
+            }
+
+        -FONCTION:

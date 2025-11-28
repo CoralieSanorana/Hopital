@@ -12,8 +12,7 @@
                 <li class="nav-item"><a class="nav-link" href="Stock.jsp">Stock</a></li>
                 <li class="nav-item"><a href="Entree.jsp" class="nav-link">Entree</a></li>
                 <li class="nav-item"><a href="Arreter.jsp" class="nav-link">Arretage</a></li>
-                <li class="nav-item"><a href="Inventaire.jsp" class="nav-link">Inventaires</a></li>
-
+                <%-- <li class="nav-item"><a href="Inventaire.jsp" class="nav-link">Inventaires</a></li>--%>
                 <li class="nav-item"><a href="logout.jsp" class="nav-link">Se deconnecter</a></li>
             </ul>
             <form class="d-flex" role="search">

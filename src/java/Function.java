@@ -1,6 +1,7 @@
 package model;
 import java.util.*;
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import database.*;
 
 public class Function{
@@ -1026,37 +1027,6 @@ public class Function{
     }
     return null;
 }
-    public Inventaire getInventaireByDate(Connection con, java.util.Date dateRecherche) throws Exception {
-        if (dateRecherche == null) return null;
-
-        String sql = """
-            SELECT * FROM (
-                SELECT ID, DATY, DESIGNATION, IDMAGASIN, ETAT, REMARQUE, IDCATEGORIE, IDPOINT
-                FROM VANIALA.INVENTAIRE
-                WHERE TRUNC(DATY) = ?
-                ORDER BY DATY DESC
-            ) WHERE ROWNUM = 1
-            """;
-
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setDate(1, new java.sql.Date(dateRecherche.getTime()));
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    Inventaire inv = new Inventaire();
-                    inv.setId(rs.getString("ID"));
-                    inv.setDaty(new java.util.Date(rs.getDate("DATY").getTime()));
-                    inv.setDesignation(rs.getString("DESIGNATION"));
-                    inv.setIdmagasin(rs.getString("IDMAGASIN"));
-                    inv.setEtat(rs.getInt("ETAT"));
-                    inv.setRemarque(rs.getString("REMARQUE"));
-                    inv.setIdcategorie(rs.getString("IDCATEGORIE"));
-                    inv.setIdpoint(rs.getString("IDPOINT"));
-                    return inv;
-                }
-            }
-        }
-        return null;
-    }
     public Inventaire getInventaire_recent(Connection con) throws Exception {
     String sql = """
         SELECT * FROM (
@@ -1083,6 +1053,43 @@ public class Function{
     }
     return null;
 }
+    public Inventaire getInventaireByDate(Connection con, java.util.Date dateRecherche) throws Exception {
+        if (dateRecherche == null) return null;
+
+        String sql = """
+            SELECT * FROM (
+                SELECT ID, DATY, DESIGNATION, IDMAGASIN, ETAT, REMARQUE, IDCATEGORIE, IDPOINT
+                FROM VANIALA.INVENTAIRE
+                WHERE TRUNC(DATY) = TO_DATE(?, 'YYYY-MM-DD')
+                ORDER BY DATY DESC
+            ) WHERE ROWNUM = 1
+            """;
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String dateStr = sdf.format(dateRecherche);
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, dateStr);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Inventaire inv = new Inventaire();
+                    inv.setId(rs.getString("ID"));
+                    // Garde les millisecondes si DATY est TIMESTAMP
+                    Timestamp ts = rs.getTimestamp("DATY");
+                    inv.setDaty(ts != null ? new java.util.Date(ts.getTime()) : null);
+                    inv.setDesignation(rs.getString("DESIGNATION"));
+                    inv.setIdmagasin(rs.getString("IDMAGASIN"));
+                    inv.setEtat(rs.getInt("ETAT"));
+                    inv.setRemarque(rs.getString("REMARQUE"));
+                    inv.setIdcategorie(rs.getString("IDCATEGORIE"));
+                    inv.setIdpoint(rs.getString("IDPOINT"));
+                    return inv;
+                }
+            }
+        }
+        return null;
+    }
+
 // mini fonctions manokatra Connection
     public User login(String nom,String pwd) throws Exception{
         User user = null;
@@ -1460,18 +1467,18 @@ public class Function{
         return inv;
     }
     public Inventaire getInventaireByDate(java.util.Date dateRecherche) throws Exception {
-        Inventaire inv = null;
-        Connection con = null;
-        try {
-            con = VanialaConnection.getConnection();
-            inv = getInventaireByDate(con, dateRecherche);
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if (con != null) con.close();
+        String url = "jdbc:oracle:thin:@...";
+        Properties props = new Properties();
+        props.put("user", "xxx");
+        props.put("password", "xxx");
+        // Ajoute cette ligne si tu veux garder setDate()
+        props.put("oracle.jdbc.useNativesyntax", "false");
+
+        try (Connection con = DriverManager.getConnection(url, props)) {
+            return getInventaireByDate(con, dateRecherche);
         }
-        return inv;
     }
+
 
 // fonctions utiles
     private java.util.Date getDateFromResultSet(ResultSet rs, String columnName) throws Exception {

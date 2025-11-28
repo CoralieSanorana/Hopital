@@ -44,7 +44,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Arretage</title>
+    <title>Inventaire</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -193,7 +193,7 @@
     <%@ include file="header.jsp" %>
 
     <div class="container mt-4">
-        <h1 class="bienvenue">Arretage</h1>
+        <h1 class="bienvenue">Inventaire</h1>
 
         <% if(request.getParameter("error") != null) { %>
             <div class="error text-center">

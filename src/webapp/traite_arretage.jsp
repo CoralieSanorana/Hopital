@@ -56,7 +56,7 @@ try {
         EtatsStock medoc_etat = etats.get(i);
         int indice = i;
         if (medoc_etat == null) continue;
-        
+
         Medicament medoc = null; 
         for(Medicament me: medicaments){
             if(me.getLibelle().equals(medoc_etat.setIdProduitLib())){
@@ -94,7 +94,12 @@ try {
         }
 
         // === Calcul de l'ecart ===
-        double ecart = quantiteReelle - quantiteLogiciel; 
+        double ecart = 0.0;
+        if(quantiteLogiciel < 0){ 
+            ecart = quantiteReelle + quantiteLogiciel;
+        } else{
+            ecart = quantiteReelle - quantiteLogiciel; 
+        }
 
         if (ecart == 0) {
             continue;

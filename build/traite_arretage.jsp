@@ -55,10 +55,17 @@ try {
     for (int i = 0; i < etats.size(); i++) {
         EtatsStock medoc_etat = etats.get(i);
         int indice = i;
-        Medicament medoc = medicaments.get(i); 
+        if (medoc_etat == null) continue;
+
+        Medicament medoc = null; 
+        for(Medicament me: medicaments){
+            if(me.getLibelle().equals(medoc_etat.setIdProduitLib())){
+                medoc = me;
+                break;
+            }
+        }
         String idmedoc = medoc.getId();
 
-        if (medoc_etat == null) continue;
 
         // Recuperer la quantite saisie
         String quantiteStr = request.getParameter("quantite_" + indice);
@@ -87,7 +94,12 @@ try {
         }
 
         // === Calcul de l'ecart ===
-        double ecart = quantiteReelle - quantiteLogiciel; 
+        double ecart = 0.0;
+        if(quantiteLogiciel < 0){ 
+            ecart = quantiteReelle + quantiteLogiciel;
+        } else{
+            ecart = quantiteReelle - quantiteLogiciel; 
+        }
 
         if (ecart == 0) {
             continue;

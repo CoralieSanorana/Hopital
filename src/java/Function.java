@@ -970,51 +970,25 @@ public class Function{
             if (ps != null) ps.close();
         }
     }
-    public Vector<InventaireFille_ING> get_inventairefille_ing(Connection con, String idInv) throws Exception{
-        String sql = "SELECT * FROM inventaire_fille_cpl_ing WHERE idinventaire = ?";
-        Vector<InventaireFille_ING> L_invf_ing = new Vector<>();
-        PreparedStatement ps = null;
-        try {
-            ps = con.prepareStatement(sql);
-            ps.setString(1,idInv);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                L_invf_ing.add(new InventaireFille_ING(
-                    rs.getString("id"),
-                    rs.getString("idinventaire"),
-                    rs.getString("idproduit"),
-                    rs.getString("idproduitlib"),
-                    rs.getString("explication"),
-                    rs.getDouble("quantitetheorique"),
-                    rs.getDouble("quantite"),
-                    new java.util.Date(rs.getDate("").getTime()),
-                    rs.getString("idmagasin"),
-                    rs.getString("idjauge"),
-                    rs.getInt("etat")
-                ));
-            }
-            rs.close();
-        } catch (Exception e) {
-            throw e;
-        } finally {
-            if (ps != null) ps.close();
-        }
-        return L_invf_ing;
-    }
     public Inventaire getInventaireById(Connection con, String idInventaire) throws Exception {
+    if (idInventaire == null || idInventaire.trim().isEmpty()) return null;
+    
     String sql = """
         SELECT ID, DATY, DESIGNATION, IDMAGASIN, ETAT, REMARQUE, IDCATEGORIE, IDPOINT
         FROM VANIALA.INVENTAIRE
         WHERE ID = ?
         """;
-
+    
     try (PreparedStatement ps = con.prepareStatement(sql)) {
         ps.setString(1, idInventaire);
         try (ResultSet rs = ps.executeQuery()) {
             if (rs.next()) {
                 Inventaire inv = new Inventaire();
                 inv.setId(rs.getString("ID"));
-                inv.setDaty(new java.util.Date(rs.getDate("DATY").getTime()));
+                
+                Timestamp ts = rs.getTimestamp("DATY");
+                inv.setDaty(ts != null ? new java.sql.Date(ts.getTime()) : null);
+                
                 inv.setDesignation(rs.getString("DESIGNATION"));
                 inv.setIdmagasin(rs.getString("IDMAGASIN"));
                 inv.setEtat(rs.getInt("ETAT"));
@@ -1027,56 +1001,26 @@ public class Function{
     }
     return null;
 }
-    public Inventaire getInventaire_recent(Connection con) throws Exception {
-    String sql = """
-        SELECT * FROM (
-            SELECT ID, DATY, DESIGNATION, IDMAGASIN, ETAT, REMARQUE, IDCATEGORIE, IDPOINT
-            FROM VANIALA.INVENTAIRE
-            ORDER BY DATY DESC
-        ) WHERE ROWNUM = 1
-        """;
-
-    try (Statement stmt = con.createStatement();
-         ResultSet rs = stmt.executeQuery(sql)) {
-        if (rs.next()) {
-            Inventaire inv = new Inventaire();
-            inv.setId(rs.getString("ID"));
-            inv.setDaty(new java.util.Date(rs.getDate("DATY").getTime()));
-            inv.setDesignation(rs.getString("DESIGNATION"));
-            inv.setIdmagasin(rs.getString("IDMAGASIN"));
-            inv.setEtat(rs.getInt("ETAT"));
-            inv.setRemarque(rs.getString("REMARQUE"));
-            inv.setIdcategorie(rs.getString("IDCATEGORIE"));
-            inv.setIdpoint(rs.getString("IDPOINT"));
-            return inv;
-        }
-    }
-    return null;
-}
-    public Inventaire getInventaireByDate(Connection con, java.util.Date dateRecherche) throws Exception {
+    public Inventaire getInventaireByDate1(Connection con, java.util.Date dateRecherche) throws Exception {
         if (dateRecherche == null) return null;
 
         String sql = """
-            SELECT * FROM (
-                SELECT ID, DATY, DESIGNATION, IDMAGASIN, ETAT, REMARQUE, IDCATEGORIE, IDPOINT
-                FROM VANIALA.INVENTAIRE
-                WHERE TRUNC(DATY) = TO_DATE(?, 'YYYY-MM-DD')
-                ORDER BY DATY DESC
-            ) WHERE ROWNUM = 1
+            SELECT ID, DATY, DESIGNATION, IDMAGASIN, ETAT, REMARQUE, IDCATEGORIE, IDPOINT
+            FROM VANIALA.INVENTAIRE
+            WHERE TRUNC(DATY) = ?
+            ORDER BY DATY DESC
+            FETCH FIRST 1 ROW ONLY
             """;
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        String dateStr = sdf.format(dateRecherche);
-
         try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, dateStr);
+            ps.setDate(1, new java.sql.Date(dateRecherche.getTime()));
+            
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     Inventaire inv = new Inventaire();
                     inv.setId(rs.getString("ID"));
-                    // Garde les millisecondes si DATY est TIMESTAMP
                     Timestamp ts = rs.getTimestamp("DATY");
-                    inv.setDaty(ts != null ? new java.util.Date(ts.getTime()) : null);
+                    inv.setDaty(ts != null ? new java.sql.Date(ts.getTime()) : null);
                     inv.setDesignation(rs.getString("DESIGNATION"));
                     inv.setIdmagasin(rs.getString("IDMAGASIN"));
                     inv.setEtat(rs.getInt("ETAT"));
@@ -1089,6 +1033,101 @@ public class Function{
         }
         return null;
     }
+    public Inventaire getInventaire_recent(Connection con) throws Exception {
+        String sql = """
+            SELECT ID, DATY, DESIGNATION, IDMAGASIN, ETAT, REMARQUE, IDCATEGORIE, IDPOINT
+            FROM VANIALA.INVENTAIRE
+            ORDER BY DATY DESC
+            """;
+        
+        try (PreparedStatement ps = con.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()) {
+            
+            if (rs.next()) {
+                Inventaire inv = new Inventaire();
+                inv.setId(rs.getString("ID"));
+                Timestamp ts = rs.getTimestamp("DATY");
+                inv.setDaty(ts != null ? new java.sql.Date(ts.getTime()) : null);
+                inv.setDesignation(rs.getString("DESIGNATION"));
+                inv.setIdmagasin(rs.getString("IDMAGASIN"));
+                inv.setEtat(rs.getInt("ETAT"));
+                inv.setRemarque(rs.getString("REMARQUE"));
+                inv.setIdcategorie(rs.getString("IDCATEGORIE"));
+                inv.setIdpoint(rs.getString("IDPOINT"));
+                return inv;
+            }
+        }
+        return null;
+    }
+    public Vector<InventaireFille_ING> get_inventairefille_ing(Connection con, String idInventaire) throws Exception {
+        Vector<InventaireFille_ING> v = new Vector<>();
+        
+        String sql = """
+            SELECT ID, IDINVENTAIRE, IDPRODUIT, IDPRODUITLIB, EXPLICATION,
+                QUANTITETHEORIQUE, QUANTITE, DATY, IDMAGASIN, IDJAUGE, ETAT
+            FROM VANIALA.INVENTAIRE_FILLE_COMPLET
+            WHERE IDINVENTAIRE = ?
+            """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, idInventaire);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    v.add(new InventaireFille_ING(
+                        rs.getString("ID"),
+                        rs.getString("IDINVENTAIRE"),
+                        rs.getString("IDPRODUIT"),
+                        rs.getString("IDPRODUITLIB"),
+                        rs.getString("EXPLICATION"),
+                        rs.getDouble("QUANTITETHEORIQUE"),
+                        rs.getDouble("QUANTITE"),
+                        rs.getTimestamp("DATY") != null ? new java.sql.Date(rs.getTimestamp("DATY").getTime()) : null,
+                        rs.getString("IDMAGASIN"),
+                        rs.getString("IDJAUGE"),
+                        rs.getInt("ETAT")
+                    ));
+                }
+            }
+        }
+        return v;
+    }
+    public Inventaire getInventaireByDate(Connection con, java.util.Date dateRecherche) throws Exception {
+        if (dateRecherche == null) return null;
+
+        // Syntaxe compatible Oracle 11g et toutes les versions suivantes
+        String sql = """
+            SELECT * FROM (
+                SELECT ID, DATY, DESIGNATION, IDMAGASIN, ETAT, REMARQUE, IDCATEGORIE, IDPOINT
+                FROM VANIALA.INVENTAIRE
+                WHERE TRUNC(DATY) = ?
+                ORDER BY DATY DESC
+            ) WHERE ROWNUM <= 1
+            """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setDate(1, new java.sql.Date(dateRecherche.getTime()));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Inventaire inv = new Inventaire();
+                    inv.setId(rs.getString("ID"));
+
+                    Timestamp ts = rs.getTimestamp("DATY");
+                    inv.setDaty(ts != null ? new java.sql.Date(ts.getTime()) : null);
+
+                    inv.setDesignation(rs.getString("DESIGNATION"));
+                    inv.setIdmagasin(rs.getString("IDMAGASIN"));
+                    inv.setEtat(rs.getInt("ETAT"));
+                    inv.setRemarque(rs.getString("REMARQUE"));
+                    inv.setIdcategorie(rs.getString("IDCATEGORIE"));
+                    inv.setIdpoint(rs.getString("IDPOINT"));
+                    return inv;
+                }
+            }
+        }
+        return null;
+    }    
+
 
 // mini fonctions manokatra Connection
     public User login(String nom,String pwd) throws Exception{

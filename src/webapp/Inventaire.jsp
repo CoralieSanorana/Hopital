@@ -1,6 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="model.*" %>
+<%@ page import="database.*" %>
 <%@ page import="java.util.*" %>
+<%@ page import="java.sql.Connection" %>
 <%@ page import="java.text.*" %>
 <%@ page import="java.net.URLEncoder"%>
 
@@ -10,11 +12,13 @@
         response.sendRedirect("login.jsp?error=1");
         return;
     }
+    Connection con = null;
     Inventaire inv = null;
     Vector<InventaireFille_ING> invf_ING = new Vector<>();
     try {
         Function fonction = new Function();
-        /*if(request.getParameter("date") != null){
+        con = VanialaConnection.getConnection();
+        if(request.getParameter("date") != null){
             String dateString = request.getParameter("date");
             if (dateString == null || dateString.isEmpty()) {
                 response.sendRedirect("Inventaire.jsp?error=" + URLEncoder.encode("Aucune Date selectionner", "UTF-8"));
@@ -29,13 +33,17 @@
                 response.sendRedirect("Inventaire.jsp?error=" + URLEncoder.encode("Erreur : " + msg, "UTF-8"));
                     return;
             }
-            inv = fonction.getInventaireByDate(date);
-            invf_ING = fonction.get_inventairefille_ing(inv.getId());
+            inv = fonction.getInventaireByDate(con,date);
+            if(inv != null){
+                invf_ING = fonction.get_inventairefille_ing(con,inv.getId());
+            } else{
+                invf_ING = null;
+            }
 
-        } else{*/
-            inv = fonction.getInventaire_recent();
-            invf_ING = fonction.get_inventairefille_ing(inv.getId());
-        //}
+        } else{
+            inv = fonction.getInventaire_recent(con);
+            invf_ING = fonction.get_inventairefille_ing(con,inv.getId());
+        }
     } catch (Exception e) {
         response.sendRedirect("home.jsp?error=" + e.getMessage());
     }
@@ -206,7 +214,7 @@
                 <div class="row g-4 mb-4">
                 <!-- Date -->
                     <div class="col-md-6">
-                        <label class="form-label"><i class="bi bi-person-badge"></i> Date d'Arretage</label>
+                        <label class="form-label"><i class="bi bi-person-badge"></i> Date Filtrage</label>
                         <input type="date" name="date" id="" required>
                     </div>
                 <!-- Bouton sauvegarde -->

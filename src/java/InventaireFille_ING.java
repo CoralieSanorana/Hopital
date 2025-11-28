@@ -77,11 +77,11 @@ public class InventaireFille_ING {
         }
     }
     public void setIdProduitLib(String idProduitLib) throws Exception{
-        if (idProduitLib == null) {
+        /* if (idProduitLib == null) {
             throw new Exception("idProduitLib InventaireFille ING NULL");
-        } else {
+        } else { */
             this.idProduitLib = idProduitLib;
-        }
+        //}
     }
     public void setIdjauge(String idjauge) {
         this.idjauge = idjauge;

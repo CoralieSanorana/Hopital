@@ -21,7 +21,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Home</title>
+    <title>Ordonnances</title>
     <link rel="stylesheet" type="text/css" href="assets/bootstrap/css/bootstrap.min.css">
 </head>
 <style>

@@ -90,7 +90,7 @@ public class InventaireFille {
     public void setIdproduit(String idproduit) throws Exception{
         if (idproduit == null) {
             throw new Exception("Id Produit Inventaire Fille NULL");
-        } else {
+        } else { 
             this.idproduit = idproduit;
         }
     }

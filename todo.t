@@ -207,21 +207,30 @@
         
         ****** traite_arretage.jsp ********
         -PAGE:
-            [] creer page traite_arretage.jsp
-            [] recuperer les informations venant de arreter.jsp
-            [] creer un nouveau inventaire a la date actuelle
-            [] creer les inventairefille pour chaque medicament{
-                [] donner quantite logiciel
-                [] donner quantite reelle
+            [ok] creer page traite_arretage.jsp
+            [ok] recuperer les informations venant de arreter.jsp
+            [ok] creer un nouveau inventaire a la date actuelle
+            [ok] creer les inventairefille pour chaque medicament{
+                [ok] donner quantite logiciel
+                [ok] donner quantite reelle
             }
             (DANS le cas ou quantite reelle != quantite logiciel){
-                [] ajouter un mouvement de contrage{
-                    [] inserer un nouveau mouvement
-                    [] inserer les MvtStockFille pour chaque contrage{
+                [ok] ajouter un mouvement de contrage{
+                    [ok] inserer un nouveau mouvement
+                    [ok] inserer les MvtStockFille pour chaque contrage{
                         si logiciel > reelle  =  type sortie
                         si logiciel < reelle  = type entree
                     }
                 }
             }
 
+        ******* Inventaire.jsp *********
+        -PAGE:
+            [] creer la apge Inventaire.jsp
+            [] afficher les inventaires les plus recentes
+            [] mettre un input date pour chercher des inventaire
+                a cette date donner
+
         -FONCTION:
+            [] getInventaireById() -> by id
+            [] getInventaireByDate() -> date

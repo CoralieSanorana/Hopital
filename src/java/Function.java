@@ -24,6 +24,7 @@ public class Function{
                     rs.getString("pwd_user_log")
                 );
             }
+            rs.close();
 
         } catch (Exception e) {
             throw e;
@@ -56,6 +57,7 @@ public class Function{
                     rs.getString("pers_situation_professionnelle")
                 ));
             }
+            rs.close();
 
         } catch (Exception e) {
             throw e;
@@ -91,6 +93,7 @@ public class Function{
                     rs.getString("profile")
                 ));
             }
+            rs.close();
 
         } catch (Exception e) {
             throw e;
@@ -128,6 +131,7 @@ public class Function{
                     rs.getInt("isvente")
                 ));
             }
+            rs.close();
 
         } catch (Exception e) {
             throw e;
@@ -141,11 +145,11 @@ public class Function{
     public Vector<Medicament> get_medicaments(Connection con) throws Exception {
         String sql = "SELECT * FROM as_ingredients order by libelle asc";
         Vector<Medicament> medicaments = new Vector<>();
-        Statement stmt = null;
+        Statement ps = null;
 
         try {
-            stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
+            ps = con.createStatement();
+            ResultSet rs = ps.executeQuery(sql);
 
             while (rs.next()) {
                 medicaments.add(new Medicament(
@@ -191,11 +195,11 @@ public class Function{
                         rs.getString("REFERENCE")
                 ));
             }
-
+            rs.close();
         } catch (Exception e) {
             throw e;
         } finally {
-            if (stmt != null) stmt.close();
+            if (ps != null) ps.close();
         }
 
         return medicaments;
@@ -205,8 +209,8 @@ public class Function{
 
         Vector<Med_Ordonnance> ordonnances = new Vector<>();
 
-        try (Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery(sql)) {
+        try (Statement ps = con.createStatement();
+            ResultSet rs = ps.executeQuery(sql)) {
 
             while (rs.next()) {
                 Med_Ordonnance ord = new Med_Ordonnance();
@@ -233,6 +237,8 @@ public class Function{
 
                 ordonnances.add(ord);
             }
+            if(ps != null) ps.close();
+            rs.close();
         }
         return ordonnances;
     }
@@ -274,8 +280,10 @@ public class Function{
                     );
                     lignes.add(fille);
                 }
+                if (ps != null) ps.close();
+                rs.close();
             }
-        }
+        } 
         return lignes;
     }
     public String insert_ordonnance(Med_Ordonnance ordonnance, Connection con) throws Exception {
@@ -325,8 +333,10 @@ public class Function{
                 if (generatedKeys.next()) {
                     return generatedKeys.getString(1); 
                 } else {
-                    throw new Exception("Insertion réussie mais impossible de récupérer l'ID généré.");
+                    throw new Exception("Insertion ordonnance réussie mais impossible de récupérer l'ID généré.");
                 }
+            } finally {
+                if (ps != null) ps.close();
             }
         }
     }
@@ -369,6 +379,7 @@ public class Function{
             setDoubleOrNull(ps, i++, ordonnanceFille.getTauxPriseEnCharge());
 
             int rowsInserted = ps.executeUpdate();
+            if (ps != null) ps.close();
             return rowsInserted > 0;
 
         } catch (Exception e) {
@@ -382,9 +393,9 @@ public class Function{
         Med_Ordonnance ordonnance = null;
 
         try {
-            PreparedStatement stmt = con.prepareStatement(sql);
-            stmt.setString(1,idordonnance);
-            ResultSet rs = stmt.executeQuery();
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1,idordonnance);
+            ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 Med_Ordonnance ord = new Med_Ordonnance();
 
@@ -410,20 +421,22 @@ public class Function{
 
                 ordonnance = ord;
             }
+            if (ps != null) ps.close();
+            rs.close();
         } catch(Exception e){
             throw e;
-        }
+        } 
 
         return ordonnance;
     }
     public Vector<EtatStockAll> get_etatStockAll(Connection con) throws Exception {
         String sql = "SELECT * FROM v_etatstock_ing_all";
         Vector<EtatStockAll> etats = new Vector<>();
-        Statement stmt = null;
+        Statement ps = null;
 
         try {
-            stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
+            ps = con.createStatement();
+            ResultSet rs = ps.executeQuery(sql);
 
             while (rs.next()) {
                 etats.add(new EtatStockAll(
@@ -452,11 +465,11 @@ public class Function{
                         rs.getDate("DATY")
                     ));
                 }
-
+                rs.close();
             } catch (Exception e) {
             throw e;
         } finally {
-            if (stmt != null) stmt.close();
+            if (ps != null) ps.close();
         }
         
         return etats;
@@ -495,8 +508,10 @@ public class Function{
                     rs.getDate("DATY")
                 ));
             }
+            if (ps != null) ps.close();
+            rs.close();
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new Exception("Échec du chargement de l'état de stock : " + e.getMessage(), e);
         }
 
@@ -505,11 +520,11 @@ public class Function{
     public Vector<MvtStockfille> get_MvtStockfille(Connection con) throws Exception {
             String sql = "SELECT * FROM mvtstockfille";
             Vector<MvtStockfille> mvts = new Vector<>();
-            Statement stmt = null;
+            Statement ps = null;
     
             try {
-                stmt = con.createStatement();
-                ResultSet rs = stmt.executeQuery(sql);
+                ps = con.createStatement();
+                ResultSet rs = ps.executeQuery(sql);
     
                 while (rs.next()) {
                     mvts.add(new MvtStockfille(
@@ -529,11 +544,11 @@ public class Function{
                             rs.getString("SOURCE")
                     ));
                 }
-    
+                rs.close();
             } catch (Exception e) {
                 throw e;
             } finally {
-                if (stmt != null) stmt.close();
+                if (ps != null) ps.close();
             }
     
             return mvts;
@@ -541,11 +556,11 @@ public class Function{
     public Vector<MontantStock> get_MontantStock(Connection con) throws Exception {
         String sql = "SELECT * FROM montant_stock";
         Vector<MontantStock> montants = new Vector<>();
-        Statement stmt = null;
+        Statement ps = null;
 
         try {
-            stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
+            ps = con.createStatement();
+            ResultSet rs = ps.executeQuery(sql);
 
             while (rs.next()) {
                 montants.add(new MontantStock(
@@ -560,11 +575,11 @@ public class Function{
                         rs.getDate("DATY")
                 ));
             }
-
+            rs.close();
         } catch (Exception e) {
             throw e;
         } finally {
-            if (stmt != null) stmt.close();
+            if (ps != null) ps.close();
         }
 
         return montants;
@@ -572,12 +587,12 @@ public class Function{
     public Medicament get_1medicament(String idmedicament,Connection con) throws Exception {
         String sql = "SELECT * FROM as_ingredients WHERE id = ?";
         Medicament medicament = null;
-        PreparedStatement stmt = null;
+        PreparedStatement ps = null;
 
         try {
-            stmt = con.prepareStatement(sql);
-            stmt.setString(1, idmedicament);
-            ResultSet rs = stmt.executeQuery();
+            ps = con.prepareStatement(sql);
+            ps.setString(1, idmedicament);
+            ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
                 medicament = new Medicament(
@@ -623,11 +638,11 @@ public class Function{
                         rs.getString("REFERENCE")
                 );
             }
-
+            rs.close();
         } catch (Exception e) {
             throw e;
         } finally {
-            if (stmt != null) stmt.close();
+            if (ps != null) ps.close();
         }
 
         return medicament;
@@ -661,6 +676,8 @@ public class Function{
                     vente.setMontantDonne(rs.getDouble("MONTANTDONNE"));
                     return vente;
                 }
+                if (ps != null) ps.close();
+                rs.close();
             }
         }
         return null; // Si aucune vente trouvée
@@ -669,13 +686,13 @@ public class Function{
         String sql = "UPDATE med_ordonnance SET date_fin = ? WHERE id = ?";
         boolean retour = false;
         try{
-            PreparedStatement st = con.prepareStatement(sql);
-            st.setDate(1, new java.sql.Date(fin.getTime()));
-            st.setString(2,idordonnance);
-            if(st.executeUpdate() > 0){
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setDate(1, new java.sql.Date(fin.getTime()));
+            ps.setString(2,idordonnance);
+            if(ps.executeUpdate() > 0){
                 retour = true;
             }
-
+            ps.close();
         } catch(Exception e){
             throw e;
         }
@@ -686,8 +703,8 @@ public class Function{
 
         Vector<Med_Ordonnance> ordonnances = new Vector<>();
 
-        try (Statement stmt = con.createStatement();
-            ResultSet rs = stmt.executeQuery(sql)) {
+        try (Statement ps = con.createStatement();
+            ResultSet rs = ps.executeQuery(sql)) {
 
             while (rs.next()) {
                 Med_Ordonnance ord = new Med_Ordonnance();
@@ -714,6 +731,8 @@ public class Function{
 
                 ordonnances.add(ord);
             }
+            ps.close();
+            rs.close();
         }
         return ordonnances;
     }
@@ -813,7 +832,7 @@ public class Function{
                         rs.getString("IDMEDECIN")
                 ));
             }
-
+            rs.close();
         } catch (Exception e) {
             throw e;
         } finally {
@@ -890,7 +909,7 @@ public class Function{
         String sql = "INSERT INTO inventaire (daty,designation,idmagasin,etat,remarque,idcategorie,idpoint) VALUES(?, ?, ?, ?, ?, ?, ?)";
         PreparedStatement ps = null;
         try {
-            ps = con.prepareStatement(sql);
+            ps = con.prepareStatement(sql,new String[]{"ID"});
             ps.setDate(1,new java.sql.Date(inventaire.getDaty().getTime()));
             ps.setString(2,inventaire.getDesignation());
             ps.setString(3, inventaire.getIdmagasin());
@@ -902,24 +921,27 @@ public class Function{
             int affectedRows = ps.executeUpdate();
 
             if (affectedRows == 0) {
-                throw new Exception("Échec de l'insertion de l'inventaire, aucune ligne insérée.");
+                throw new Exception("Échec de l'insertion de l'ordonnance, aucune ligne insérée.");
             }
+
             try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     return generatedKeys.getString(1); 
                 } else {
-                    throw new Exception("Insertion réussie mais impossible de récupérer l'ID généré.");
+                    throw new Exception("Insertion Inventaire réussie mais impossible de récupérer l'ID généré.");
                 }
             }
         } catch (Exception e) {
             throw e;
+        } finally {
+            if (ps != null) ps.close();
         }
     }
     public String insert_inventairefille(Connection con, InventaireFille invf) throws Exception{
         String sql = "INSERT INTO inventairefille (idinventaire,idproduit,explication,quantitetheorique,quantite,idjauge,dateperemption,dateperemptionlib) VALUES(?, ?, ?, ?, ?, ?, ? ,?)";
         PreparedStatement ps = null;
         try {
-            ps = con.prepareStatement(sql);
+            ps = con.prepareStatement(sql,new String[]{"ID"});
             ps.setString(1,invf.getIdInventaire());
             ps.setString(2,invf.getIdproduit());
             ps.setString(3, invf.getExplication());
@@ -938,21 +960,23 @@ public class Function{
                 if (generatedKeys.next()) {
                     return generatedKeys.getString(1); 
                 } else {
-                    throw new Exception("Insertion réussie mais impossible de récupérer l'ID généré.");
+                    throw new Exception("Insertion inventaire fille réussie mais impossible de récupérer l'ID généré.");
                 }
             }
         } catch (Exception e) {
             throw e;
+        } finally {
+            if (ps != null) ps.close();
         }
     }
     public Vector<InventaireFille_ING> get_inventairefille_ing(Connection con, String idInv) throws Exception{
         String sql = "SELECT * FROM inventaire_fille_cpl_ing WHERE idinventaire = ?";
         Vector<InventaireFille_ING> L_invf_ing = new Vector<>();
-        PreparedStatement st = null;
+        PreparedStatement ps = null;
         try {
-            st = con.prepareStatement(sql);
-            st.setString(1,idInv);
-            ResultSet rs = st.executeQuery();
+            ps = con.prepareStatement(sql);
+            ps.setString(1,idInv);
+            ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 L_invf_ing.add(new InventaireFille_ING(
                     rs.getString("id"),
@@ -968,13 +992,97 @@ public class Function{
                     rs.getInt("etat")
                 ));
             }
+            rs.close();
         } catch (Exception e) {
             throw e;
+        } finally {
+            if (ps != null) ps.close();
         }
         return L_invf_ing;
     }
+    public Inventaire getInventaireById(Connection con, String idInventaire) throws Exception {
+    String sql = """
+        SELECT ID, DATY, DESIGNATION, IDMAGASIN, ETAT, REMARQUE, IDCATEGORIE, IDPOINT
+        FROM VANIALA.INVENTAIRE
+        WHERE ID = ?
+        """;
 
+    try (PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setString(1, idInventaire);
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                Inventaire inv = new Inventaire();
+                inv.setId(rs.getString("ID"));
+                inv.setDaty(new java.util.Date(rs.getDate("DATY").getTime()));
+                inv.setDesignation(rs.getString("DESIGNATION"));
+                inv.setIdmagasin(rs.getString("IDMAGASIN"));
+                inv.setEtat(rs.getInt("ETAT"));
+                inv.setRemarque(rs.getString("REMARQUE"));
+                inv.setIdcategorie(rs.getString("IDCATEGORIE"));
+                inv.setIdpoint(rs.getString("IDPOINT"));
+                return inv;
+            }
+        }
+    }
+    return null;
+}
+    public Inventaire getInventaireByDate(Connection con, java.util.Date dateRecherche) throws Exception {
+        if (dateRecherche == null) return null;
 
+        String sql = """
+            SELECT * FROM (
+                SELECT ID, DATY, DESIGNATION, IDMAGASIN, ETAT, REMARQUE, IDCATEGORIE, IDPOINT
+                FROM VANIALA.INVENTAIRE
+                WHERE TRUNC(DATY) = ?
+                ORDER BY DATY DESC
+            ) WHERE ROWNUM = 1
+            """;
+
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setDate(1, new java.sql.Date(dateRecherche.getTime()));
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Inventaire inv = new Inventaire();
+                    inv.setId(rs.getString("ID"));
+                    inv.setDaty(new java.util.Date(rs.getDate("DATY").getTime()));
+                    inv.setDesignation(rs.getString("DESIGNATION"));
+                    inv.setIdmagasin(rs.getString("IDMAGASIN"));
+                    inv.setEtat(rs.getInt("ETAT"));
+                    inv.setRemarque(rs.getString("REMARQUE"));
+                    inv.setIdcategorie(rs.getString("IDCATEGORIE"));
+                    inv.setIdpoint(rs.getString("IDPOINT"));
+                    return inv;
+                }
+            }
+        }
+        return null;
+    }
+    public Inventaire getInventaire_recent(Connection con) throws Exception {
+    String sql = """
+        SELECT * FROM (
+            SELECT ID, DATY, DESIGNATION, IDMAGASIN, ETAT, REMARQUE, IDCATEGORIE, IDPOINT
+            FROM VANIALA.INVENTAIRE
+            ORDER BY DATY DESC
+        ) WHERE ROWNUM = 1
+        """;
+
+    try (Statement stmt = con.createStatement();
+         ResultSet rs = stmt.executeQuery(sql)) {
+        if (rs.next()) {
+            Inventaire inv = new Inventaire();
+            inv.setId(rs.getString("ID"));
+            inv.setDaty(new java.util.Date(rs.getDate("DATY").getTime()));
+            inv.setDesignation(rs.getString("DESIGNATION"));
+            inv.setIdmagasin(rs.getString("IDMAGASIN"));
+            inv.setEtat(rs.getInt("ETAT"));
+            inv.setRemarque(rs.getString("REMARQUE"));
+            inv.setIdcategorie(rs.getString("IDCATEGORIE"));
+            inv.setIdpoint(rs.getString("IDPOINT"));
+            return inv;
+        }
+    }
+    return null;
+}
 // mini fonctions manokatra Connection
     public User login(String nom,String pwd) throws Exception{
         User user = null;
@@ -1325,9 +1433,47 @@ public class Function{
         }
         return invf_ing;
     }   
-    
+    public Inventaire getInventaireById(String idInv) throws Exception {
+        Inventaire inv = null;
+        Connection con = null;
+        try {
+            con = VanialaConnection.getConnection();
+            inv = getInventaireById(con, idInv);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (con != null) con.close();
+        }
+        return inv;
+    }
+    public Inventaire getInventaire_recent() throws Exception {
+        Inventaire inv = null;
+        Connection con = null;
+        try {
+            con = VanialaConnection.getConnection();
+            inv = getInventaire_recent(con);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (con != null) con.close();
+        }
+        return inv;
+    }
+    public Inventaire getInventaireByDate(java.util.Date dateRecherche) throws Exception {
+        Inventaire inv = null;
+        Connection con = null;
+        try {
+            con = VanialaConnection.getConnection();
+            inv = getInventaireByDate(con, dateRecherche);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            if (con != null) con.close();
+        }
+        return inv;
+    }
 
-    // fonctions utiles
+// fonctions utiles
     private java.util.Date getDateFromResultSet(ResultSet rs, String columnName) throws Exception {
         java.sql.Date sqlDate = rs.getDate(columnName);
         return sqlDate != null ? new java.util.Date(sqlDate.getTime()) : null;

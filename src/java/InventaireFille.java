@@ -13,7 +13,7 @@ public class InventaireFille {
 
     public InventaireFille(){}
     public InventaireFille( String id, String idInventaire,
-    String explication, double quantite_theorique,
+    String idproduit,String explication, double quantite_theorique,
     double  quantite, String idjauge,
     Date dateperemptiom,String dateperemptionLib
     ) throws Exception{

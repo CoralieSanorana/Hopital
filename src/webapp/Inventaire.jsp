@@ -1,6 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="model.*" %>
 <%@ page import="java.util.*" %>
+<%@ page import="java.text.*" %>
+<%@ page import="java.net.URLEncoder"%>
 
 <%
     User user = (User) session.getAttribute("user_log");
@@ -8,23 +10,43 @@
         response.sendRedirect("login.jsp?error=1");
         return;
     }
-    Vector<Medicament> medicaments = new Vector<>();
-
-    try{
+    Inventaire inv = null;
+    Vector<InventaireFille_ING> invf_ING = new Vector<>();
+    try {
         Function fonction = new Function();
-        medicaments = fonction.get_medicaments();
-    }catch (Exception e) {
-        response.sendRedirect("login.jsp?error=" + e.getMessage());
+        if(request.getParameter("date") != null){
+            String dateString = request.getParameter("date");
+            if (dateString == null || dateString.isEmpty()) {
+                response.sendRedirect("Inventaire.jsp?error=" + URLEncoder.encode("Aucune Date selectionner", "UTF-8"));
+                return;
+            }
+            java.util.Date date = null;
+            try{
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); 
+                date = sdf.parse(dateString);
+            }catch(Exception e){
+                String msg = e.getMessage() != null ? e.getMessage() : "Erreur inconnue";
+                response.sendRedirect("Inventaire.jsp?error=" + URLEncoder.encode("Erreur : " + msg, "UTF-8"));
+                    return;
+            }
+            inv = fonction.getInventaireByDate(date);
+            invf_ING = fonction.get_inventairefille_ing(inv.getId());
+
+        } else{
+            inv = fonction.getInventaire_recent();
+            invf_ING = fonction.get_inventairefille_ing(inv.getId());
+        }
+    } catch (Exception e) {
+        response.sendRedirect("home.jsp?error=" + e.getMessage());
     }
 %>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Saisie d'approvisionnement</title>
+    <title>Arretage</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
-    <!-- Bootstrap 5 + Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
@@ -171,8 +193,7 @@
     <%@ include file="header.jsp" %>
 
     <div class="container mt-4">
-        <h1 class="bienvenue">BIENVENUE <%= user.get_nom().toUpperCase() %> !</h1>
-        <p class="subtitle">Saisie d'une nouvelle approvisionnement</p>
+        <h1 class="bienvenue">Arretage</h1>
 
         <% if(request.getParameter("error") != null) { %>
             <div class="error text-center">
@@ -181,71 +202,65 @@
         <% } %>
 
         <div class="card-form">
-            <form name="form1" method="post" action="traite_entree.jsp">
+            <form name="form1" method="post" action="Inventaire.jsp">
                 <div class="row g-4 mb-4">
-                    <!-- Date -->
+                <!-- Date -->
                     <div class="col-md-6">
-                        <label class="form-label"><i class="bi bi-person-badge"></i> Date d'approvisionnement</label>
+                        <label class="form-label"><i class="bi bi-person-badge"></i> Date d'Arretage</label>
                         <input type="date" name="date" id="" required>
                     </div>
-                    <!-- Bouton sauvegarde -->
+                <!-- Bouton sauvegarde -->
                     <div class="col-md-6">
                         <button type="submit" class="btn btn-save px-5">
-                            <i class="bi bi-check2-all"></i> Sauvegarder l'approvisionnement
+                            <i class="bi bi-check2-all"></i> Rechercher
                         </button>
                     </div>
                 </div>
+            </form>
 
                 <!-- Tableau des médicaments -->
                 <div class="table-responsive">
                     <table class="table table-medicaments">
                         <thead>
                             <tr>
-                                <th>Médicament</th>
-                                <th style="width: 100px;">Sélection</th>
-                                <th style="width: 120px;">Quantité</th>
+                                <th>Id Inventaire</th>
+                                <th>Produit</th>
+                                <th>Explication</th>
+                                <th>Date</th>
+                                <th>Quantité Logiciel</th>
+                                <th>Quantité reelle</th>
+                                <th>Magasin</th>
+                                <th>Etat</th>
+                                <th>Jauge</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <% if(medicaments == null || medicaments.isEmpty()) { %>
+                            <% if(invf_ING == null || invf_ING.isEmpty()) { %>
                                 <tr>
                                     <td colspan="4" class="text-center py-5 text-muted">
                                         <i class="bi bi-prescription2 fs-1"></i><br>
-                                        Aucun médicament disponible
+                                        Aucun Inventaire disponible
                                     </td>
                                 </tr>
                             <% } else { 
-                                int index = 0;
-                                for(Medicament medicament : medicaments) { %>
+                                for(InventaireFille_ING invf : invf_ING) { %>
                                     <tr>
-                                        <td><strong><%= medicament.getLibelle() %></strong></td>
-                                        <td>
-                                            <input type="checkbox" name="selectedMedoc" value="<%= medicament.getId() %>"
-                                                   onchange="toggleFields(this, <%= index %>)" class="form-check-input">
-                                        </td>
-                                        <td>
-                                            <input type="number" name="quantite_<%= index %>" min="1" value="1" class="form-control" disabled>
-                                        </td>
+                                        <td><%= invf.getIdInventaire() %></td>
+                                        <td><%= invf.getIdProduitLib() %></td>
+                                        <td><%= invf.getExplication() %></td>
+                                        <td><%= invf.getDaty() %></td>
+                                        <td><%= invf.getQuantite_theorique() %></td>
+                                        <td><%= invf.getQuantite() %></td>
+                                        <td><%= invf.getIdmagasin() %></td>
+                                        <td><%= invf.getEtat() %></td>
+                                        <td><%= invf.getIdjauge() %></td>
                                     </tr>
-                            <% index++; } } %>
+                                <% } %>
+                            <% } %>
                         </tbody>
                     </table>
                 </div>
-
-            </form>
         </div>
     </div>
-
-    <script>
-        function toggleFields(checkbox, index) {
-            const quantite = document.getElementsByName("quantite_" + index)[0];
-            if (checkbox.checked) {
-                quantite.disabled = false;
-            } else {
-                quantite.disabled = true;
-                quantite.value = '';
-            }
-        }
-    </script>
 </body>
 </html>

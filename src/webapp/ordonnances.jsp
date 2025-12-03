@@ -8,11 +8,14 @@
         response.sendRedirect("login.jsp?error=1");
         return;
     }
-    Vector<Med_Ordonnance> ordonnances = new Vector<>();
+    Vector<Med_Ordonnance> ordonnances_nonlivrer = new Vector<>();
+    Vector<Med_Ordonnance> ordonnances_livrer = new Vector<>();
+    Function fonction = new Function();
     
     try{
-        Function fonction = new Function();
-        ordonnances = fonction.get_ordonnances_nonLivrer();
+        ordonnances_nonlivrer = fonction.get_ordonnances_nonLivrer();
+        ordonnances_livrer = fonction.get_ordonnances_Livrer();
+
     }catch (Exception e) {
         response.sendRedirect("login.jsp?error=" + e.getMessage());
     }
@@ -163,33 +166,17 @@
                 <%= request.getParameter("error") %>
             </p>
         <% } %>
-        <%-- <div class="row">
-            <% if(ordonnances == null ) {%>
-                <p><h4>Aucune Ordonnance Trouver </h4></p>
-            <% } else{ 
-                for(Med_Ordonnance ordonnance: ordonnances) {%>
-                <div class="col-sm-3">
-                    <p><h4 class="text-center">Ordonnance <%= ordonnance.getId() %></h4></p>
-                    <p>Patient <%= ordonnance.getObservation_s() %></p>
-                    <p>Date <%= ordonnance.getDaty() %></p>
-                    <form action="livraison.jsp" method="post">
-                        <input type="hidden" name="idordonnance" value="<%= ordonnance.getId() %>">
-                        <input type="submit" value="Livrer">
-                    </form>
-                </div>
-            <% } }%>
-        </div> --%>
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4 mt-3">
-            <% if(ordonnances == null || ordonnances.isEmpty()) { %>
+            <% if(ordonnances_nonlivrer == null || ordonnances_nonlivrer.isEmpty()) { %>
                 <div class="col-12">
                     <div class="no-data">
                         <i class="bi bi-file-earmark-x"></i>
                         <h4>Aucune ordonnance non livrée pour le moment</h4>
-                        <p>Toutes les ordonnances ont été livrées.</p>
+                        <p>Toutes les ordonnances_nonlivrer ont été livrées.</p>
                     </div>
                 </div>
             <% } else { 
-                for(Med_Ordonnance ordonnance : ordonnances) { %>
+                for(Med_Ordonnance ordonnance : ordonnances_nonlivrer) { %>
                     <div class="col">
                         <div class="ordonnance-card">
                             <h4>Ordonnance N°<%= ordonnance.getId() %></h4>
@@ -207,7 +194,98 @@
                 <% } 
             } %>
         </div>
+
+        <div class="row text-center">
+            <h1 class="bienvenue">TOUS LES ORDONNANCES DEJA LIVRER</h1>
+        </div>
+        <% if(request.getParameter("error") != null) { %>
+            <div class="error text-center">
+                <i class="bi bi-exclamation-triangle-fill"></i> <%= request.getParameter("error") %>
+            </div>
+        <% } %>
+        <div class="row">
+            <% if(ordonnances_livrer == null || ordonnances_livrer.isEmpty()) { %>
+                <div class="col-sm-12">
+                    <div class="no-data">
+                        <i class="bi bi-file-earmark-x"></i>
+                        <h4>Aucune ordonnance livrée pour le moment</h4>
+                        <p>Toutes les ordonnances_livrer n'ont pas encore été livrées.</p>
+                    </div>
+                </div>
+            <% } else { 
+                for(Med_Ordonnance ordonnance : ordonnances_livrer) { %>
+                    <div class="col">
+                        <div class="">
+                            <h4>Ordonnance N°<%= ordonnance.getId() %></h4>
+                            <p><strong>Patient :</strong> <%= ordonnance.getObservation_s() != null ? ordonnance.getObservation_s() : "Non spécifié" %></p>
+                            <p><strong>Date :</strong> <%= ordonnance.getDaty() %></p>
+                            
+                                <div class="table-responsive">
+                                <% 
+                                    Vector<Medicament> medicaments = new Vector<>(); 
+                                    Vector<MedOrdonnanceFille> ordonnanceFille = fonction.get_medordonnances_fille(ordonnance.getId());
+                                %>
+                                    <table class="table table-medicaments">
+                                        <thead>
+                                            <tr>
+                                                <th>Médicament</th>
+                                                <th>Quantité< Livrer/th>
+                                                <th style="width: 120px;">Quantité Retourner</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <form action="retourner.jsp" method="post" style="margin-top: 20px;">
+                                                <% if(ordonnanceFille == null || ordonnanceFille.isEmpty()) { %>
+                                                    <tr>
+                                                        <td colspan="4" class="text-center py-5 text-muted">
+                                                            <i class="bi bi-prescription2 fs-1"></i><br>
+                                                            Aucun médicament disponible
+                                                        </td>
+                                                    </tr>
+                                                <% } else { 
+                                                    int index = 0;
+                                                    for(MedOrdonnanceFille odf : ordonnanceFille) { %>
+                                                        <%  
+                                                        Medicament medoc = fonction.get_1medicament(odf.getIdMedicament());
+                                                        %>
+                                                        <tr>
+                                                            <td><strong><%= medoc.getLibelle() %></strong></td>
+                                                                <input type="hidden" name="idmedoc" value="<%= odf.getIdMedicament() %>">
+                                                            <td>
+                                                                <strong><%= odf.getQuantite() %></strong>
+                                                            </td>
+                                                            <td>
+                                                                <input type="hidden" name="date" value="2025-12-1">
+                                                                <input type="number" name="quantite" min="0" max="<%= odf.getQuantite() %>" class="form-control" required>
+                                                            </td>
+                                                            <td>
+                                                                <button type="submit" class="btn btn-save px-5">
+                                                                    <i class="bi bi-check2-all"></i> Retourner
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                <% index++; } } %>
+                                            </form>
+                                        </tbody>
+                                    </table>
+                                </div>
+                        </div>
+                    </div>
+                <% } 
+            } %>
+        </div>
     </div>
 
 </body>
+<script>
+        function toggleFields(checkbox, index) {
+            const quantite = document.getElementsByName("quantite_" + index)[0];
+            if (checkbox.checked) {
+                quantite.disabled = false;
+            } else {
+                quantite.disabled = true;
+                quantite.value = '';
+            }
+        }
+    </script>
 </html>

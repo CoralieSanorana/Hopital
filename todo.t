@@ -3,7 +3,7 @@
     * [ok] inserer les donnes
 ========================== PARTIE 1 =============== PHARMACIE =================================
     
-    * [] visionner les data a utiliser{  (EN COURS ....
+    * [ok] visionner les data a utiliser{  (EN COURS ....
     )
             - med_medecin
             - client
@@ -226,11 +226,70 @@
 
         ******* Inventaire.jsp *********
         -PAGE:
-            [] creer la apge Inventaire.jsp
-            [] afficher les inventaires les plus recentes
-            [] mettre un input date pour chercher des inventaire
+            [ok] creer la apge Inventaire.jsp
+            [ok] afficher les inventaires les plus recentes
+            [ok] mettre un input date pour chercher des inventaire
                 a cette date donner
 
         -FONCTION:
-            [] getInventaireById() -> by id
-            [] getInventaireByDate() -> date
+            [ok] getInventaireById() -> by id
+            [ok] getInventaireByDate() -> date
+
+
+========================= PARTIE 2 ================= EQUIVALENCE des UNITES ===================
+******** les tables a voir ********
+    [] equivalence{     (demander a chat)
+        [] ajouter les colonnes
+        - unite_ref
+        - pv
+        [] inserer les equivalences pour chaque as_ingredients
+        - mettre le prix de vente fixe
+    }
+    [] med_ordonnance_fille{
+        [] les ajustement action faire 
+        - mettre dans prix le prix total
+        - mettre dans unite le type de unite choisi
+        - mettre dans puunite le prix de un unite
+        - mettre dans quantite la quantite de unite choisi 
+    }
+    [] vente_details{
+        [] ajouter colonne
+        - unite
+        - qte_total
+        [] ajustement a faire 
+        - mettre dans unite le unite choisi
+        - mettre dans QTE la quantite de unite vendu
+        - mettre dans qte_total le total des pieces vendu
+    }
+    [] mvtstockfille{
+        [] ajouter les colonnes
+        - unite
+        - quantite
+        - pv
+        [] ajustement a faire
+        - mettre dans quantite la quantite de unite choisi
+        - mettre dans entree/sortie la qte_total en piece du medicament
+        - mettre dans pv le pv de unite choisi
+        ----> (le prix total = pv * quantite)
+    }
+    [ok] as_unite
+    [ok] as_unite_v  
+
+***** home.jsp *****
+ - PAGE:
+    [ok] mettre une liste deroulante de type de unite
+ - FONCTION:
+    [ok] get_as_unite_v()
+ -JAVA:
+    [ok] Unite.java
+
+***** traitement.jsp *****
+ - PAGE:
+    [] prendre les unite choisi
+    [] prendre le pv de unite choisi
+    [] mettre dans pu(med_ordonnance_fille) le pv(unite choisi)
+    [] inserer dans unite(med_ordonnance_fille) le unite choisi
+ - FONCTION: 
+    [] get_equivalence()
+ - JAVA:
+    [ok] Equivalence.java

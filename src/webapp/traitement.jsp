@@ -9,16 +9,14 @@
 Connection con = null;
 Function fonction = new Function();
 boolean success = false;
+Vector<Unite> L-unite = new Vector<>();
 
 String med = request.getParameter("medecin");
 String patient = request.getParameter("patient");
 String[] selectedMedocIds = request.getParameterValues("selectedMedoc");
 
-out.println("Médecin reçu : " + med + "<br>");
-out.println("Patient reçu : " + patient + "<br>");
-
-    Med_Ordonnance ordonnance = new Med_Ordonnance();
-    ordonnance.setIdmedecin(med);
+Med_Ordonnance ordonnance = new Med_Ordonnance();
+ordonnance.setIdmedecin(med);
 try {
     con = VanialaConnection.getConnection();
     con.setAutoCommit(false);
@@ -37,19 +35,23 @@ try {
     }
     Vector<Medicament> medicaments = fonction.get_medicaments(con);
     int prochainNumero = medicaments.size() + 1;
+    
     String idConsultation = "CONS" + String.format("%06d", prochainNumero);
-    ordonnance.setId_consultation(idConsultation);
-    ordonnance.setDaty(null);                    
-    ordonnance.setNb_jours("");                     
-    ordonnance.setDate_debut(null);
-    ordonnance.setDate_fin(null);
-    ordonnance.setType("");                          
-    ordonnance.setEtat(1);                           
-    ordonnance.setObservation_s(patient);         
+      ordonnance.setId_consultation(idConsultation);
+      ordonnance.setDaty(null);                    
+      ordonnance.setNb_jours("");                     
+      ordonnance.setDate_debut(null);
+      ordonnance.setDate_fin(null);
+      ordonnance.setType("");                          
+      ordonnance.setEtat(1);                           
+      ordonnance.setObservation_s(patient);         
     String idOrdonnance = fonction.insert_ordonnance(ordonnance, con);  
     if (idOrdonnance == null) {
         throw new Exception("Échec insertion ordonnance principale");
+        return;
     }
+
+    L_unite = fonction.get_as_unite_v(con);
 
     int compteurLigne = 1;
     for (String idMedoc : selectedMedocIds) {
@@ -65,6 +67,8 @@ try {
 
         String quantiteStr = request.getParameter("quantite_" + indice);
         String posologie = request.getParameter("desc_" + indice);
+        String unite = request.getParameter("unite_" + indice);
+        Unite unite_choisi = null;
 
         int quantite = 1;
         if (quantiteStr != null && !quantiteStr.trim().isEmpty()) {
@@ -75,25 +79,38 @@ try {
                 quantite = 1;
             }
         }
-
         if (posologie == null) posologie = "";
-
+        for(Unite u: L_unite){
+            if(u.getId().equals(unite)){
+                unite_choisi = u;
+                break;
+            }
+        }
+        if(unite_choisi == null){
+            throw new Exception("Aucun Unite choisi !!");
+            return;
+        }
+        double pu = 0.0;
+        if(medoc.getUnite().equals(unite_choisi)){
+            pu = medoc.getPv();
+        } else{
+            
+        }
         double prixTotal = quantite * medoc.getPv();
-        double pu = medoc.getPv();
+        String unite_inserer = "";
 
         String idLigne = idOrdonnance + "-" + String.format("%03d", compteurLigne++);
-
         MedOrdonnanceFille ligne = new MedOrdonnanceFille(
             idMedoc,                   
             posologie,                 
             idOrdonnance,              
             idLigne,                   
-            1,                       
+            11,                       
             "",                       
             prixTotal,                
             "",                        
             quantite,                   
-            medoc.getUnite(),         
+            unite_inserer,         
             "",                         
             pu,                        
             quantite,                  

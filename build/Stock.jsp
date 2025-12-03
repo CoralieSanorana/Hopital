@@ -66,8 +66,6 @@
         .table thead th {
             position: sticky;
             top: 0;
-            background: #003366 !important;
-            color: #ffffff;
             z-index: 10;
             font-size: 13px;
         }
@@ -80,11 +78,7 @@
             background-color: #e3ecff !important;
         }
 
-        /* --- COULEURS PERSONNALISÉES --- */
-        #entry { color: #005fb8; font-weight: bold; }      /* Entrée */
-        #exit  { color: #c21e1e; font-weight: bold; }      /* Sortie */
-        #reste { color: #6a1b9a; font-weight: bold; }      /* Reste */
-        #price { color: #0a7c2f; font-weight: bold; }      /* Prix */
+    
     </style>
 </head>
 
@@ -96,7 +90,7 @@
     <div class="row justify-content-center">
         <div class="col-12 card-custom">
 
-            <h3 class="title-text">📦 État du Stock (montants)</h3>
+            <h3 class="title-text">Etat du Stock (montants)</h3>
 
             <% if (etats == null || etats.size() == 0) { %>
 

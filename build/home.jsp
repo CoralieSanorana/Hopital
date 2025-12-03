@@ -11,12 +11,14 @@
     Vector<Client> clients = new Vector<>();
     Vector<Medecin> medecins = new Vector<>();
     Vector<Medicament> medicaments = new Vector<>();
+    Vector<Unite> unites = new Vector<>();
 
     try{
         Function fonction = new Function();
         clients = fonction.get_clients();
         medecins = fonction.get_medecins();
         medicaments = fonction.get_medicaments();
+        unites = fonction.get_as_unite_v();
     }catch (Exception e) {
         response.sendRedirect("login.jsp?error=" + e.getMessage());
     }
@@ -252,6 +254,17 @@
                                                    onchange="toggleFields(this, <%= index %>)" class="form-check-input">
                                         </td>
                                         <td>
+                                            <select name="unite_<%= index %>" id="" disabled>
+                                              <% if(unites == null) {%>
+                                                <p>Aucun Unite trouver</p>
+                                              <%} else{ 
+                                                for(Unite unite: unites) { %>
+                                                 <option value="<%= unite.getId() %>"><%= unite.getVal() %></option>
+                                                <% } 
+                                              } %>
+                                            </select>
+                                        </td>
+                                        <td>
                                             <input type="number" name="quantite_<%= index %>" min="1" value="1" class="form-control" disabled>
                                         </td>
                                         <td>
@@ -272,12 +285,15 @@
         function toggleFields(checkbox, index) {
             const quantite = document.getElementsByName("quantite_" + index)[0];
             const desc = document.getElementsByName("desc_" + index)[0];
+            const unite = document.getElementsByName("unite_" + index)[0];
             if (checkbox.checked) {
                 quantite.disabled = false;
                 desc.disabled = false;
+                unite.disabled = false;
             } else {
                 quantite.disabled = true;
                 desc.disabled = true;
+                unite.disabled = true;
                 quantite.value = '';
                 desc.value = '';
             }

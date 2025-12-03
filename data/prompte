@@ -1,0 +1,67 @@
+je suis sur un projet jsp & java, j utilise une database dans oracle (vaniala/vaniala) . Je suis senser gerer la gestion des medicaments dans 
+une pharmacie, dans le fichier AS_INGREDIENTS_corriger.txt se trouve la liste des medicaments, et dans AS_UNITE_V.txt la liste 
+des unite.
+peux tu me creer une table 'equivalence' contenant 
+ces colonnes{
+id, idproduit, unite, unite_ref, quantite, pv
+} 
+je veux que le id soit generer automatiquement
+voici une table dont tu peux t inspirer:
+CREATE TABLE "VANIALA"."EQUIVALENCE" 
+   (	"ID" VARCHAR2(100) NOT NULL ENABLE, 
+	"IDPRODUIT" VARCHAR2(100), 
+	"IDUNITE" VARCHAR2(100), 
+	"QTE" NUMBER(10,2), 
+	 CONSTRAINT "EQUIVALENCE_PK" PRIMARY KEY ("ID")
+  USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+  TABLESPACE "USERS"  ENABLE, 
+	 CONSTRAINT "UNIK_PRODUIT_UNITE" UNIQUE ("IDPRODUIT", "IDUNITE")
+  USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+  TABLESPACE "USERS"  ENABLE, 
+	 CONSTRAINT "FK_UNITE_EQUIVALENCE" FOREIGN KEY ("IDUNITE")
+	  REFERENCES "VANIALA"."UNITE" ("ID") ENABLE NOVALIDATE
+   ) SEGMENT CREATION IMMEDIATE 
+  PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255 NOCOMPRESS LOGGING
+  STORAGE(INITIAL 19922944 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+  TABLESPACE "USERS" ;
+
+CREATE UNIQUE INDEX "VANIALA"."EQUIVALENCE_PK" ON "VANIALA"."EQUIVALENCE" ("ID") 
+  PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+  TABLESPACE "USERS" ;
+ 
+  CREATE UNIQUE INDEX "VANIALA"."UNIK_PRODUIT_UNITE" ON "VANIALA"."EQUIVALENCE" ("IDPRODUIT", "IDUNITE") 
+  PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+  TABLESPACE "USERS" ;
+
+je veux maintenant que tu me genere les donnes a inserer dans cette table que tu va creer.
+je veux une equivalence des unite, c est a dire que la table 'equivalence' soit un repere d equivalence
+pour les unite.
+pour chaque medicaments (as_ingredients), tu complet dans la table 'equivalence' ceci:
+  - idproduit = id (dans as_ingredients)
+  - unite = le unite a trouver la convertion
+  - unite_ref = unite (dans as_ingredients) --- c'est unite plus petite de ce produit
+  - quantite = la quantite de piece(unite_ref) contenu dans unite  ---- c'est la quantite qui fait l'equivalence
+  - pv = pv(dans as_ingredients) * quantite(dans equivalence) - reduction (5%)   ----- le prix de vente fixe de ce produit avec cet unite(equivalence) 
+
+Voici les equivalences que je veux appliquer:
+  - plaquette = 10 unite
+  - boite = 30 unite
+  - carton = 90 unite
+  - litre = 1000 ml
+  - dl = 100 ml
+  - gramme = 1000 mg
+  - sachet = 2 unite
+
+Tu peux aussi ajouter quelques equivalences si j en ai oublier d autre 
+(juste des ajustements avec les unite qui existe  dans le fichier AS_UNITE_V.txt)
+
+Donc tu n'a qu'a faire les equivalences avec les uite compatibles (les ml avec les litre, les gramme avec les mg, ..etc)

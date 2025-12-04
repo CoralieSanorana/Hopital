@@ -20,6 +20,8 @@ public class VenteDetails {
     private String idActe;
     private double remiseMontant;
     private String idMedecin;
+    private String unite;
+    private double qte_total;
 
     public VenteDetails() {}
 
@@ -27,7 +29,7 @@ public class VenteDetails {
                         double qte, double pu, double remise, double tva, double puAchat,
                         double puVente, String idDevise, double tauxDeChange, String designation,
                         String compte, double puRevient, String idActe, double remiseMontant,
-                        String idMedecin) {
+                        String idMedecin, String unite, double qte_total) {
         try {
             setId(id);
             setIdVente(idVente);
@@ -47,6 +49,8 @@ public class VenteDetails {
             setIdActe(idActe);
             setRemiseMontant(remiseMontant);
             setIdMedecin(idMedecin);
+            setUnite(unite);
+            setQte_total(qte_total);
         } catch (Exception e) {
             e.fillInStackTrace();
         }
@@ -57,6 +61,12 @@ public class VenteDetails {
     public void setId(String id) throws Exception {
         if (id != null && !id.isEmpty()) this.id = id;
         else throw new Exception("ID invalide");
+    }
+    public void setQte_total(double qte_total) {
+        this.qte_total = qte_total;
+    }
+    public void setUnite(String unite) {
+        this.unite = unite;
     }
 
     public void setIdVente(String idVente) { this.idVente = idVente; }
@@ -137,27 +147,10 @@ public class VenteDetails {
     public String getIdActe() { return idActe; }
     public double getRemiseMontant() { return remiseMontant; }
     public String getIdMedecin() { return idMedecin; }
-
-    @Override
-    public String toString() {
-        return "VenteDetails{" +
-                "id='" + id + '\'' +
-                ", idVente='" + idVente + '\'' +
-                ", idProduit='" + idProduit + '\'' +
-                ", qte=" + qte +
-                ", pu=" + pu +
-                ", remise=" + remise +
-                ", tva=" + tva +
-                ", puAchat=" + puAchat +
-                ", puVente=" + puVente +
-                ", idDevise='" + idDevise + '\'' +
-                ", tauxDeChange=" + tauxDeChange +
-                ", designation='" + designation + '\'' +
-                ", compte='" + compte + '\'' +
-                ", puRevient=" + puRevient +
-                ", idActe='" + idActe + '\'' +
-                ", remiseMontant=" + remiseMontant +
-                ", idMedecin='" + idMedecin + '\'' +
-                '}';
+    public double getQte_total() {
+        return qte_total;
+    }
+    public String getUnite() {
+        return unite;
     }
 }

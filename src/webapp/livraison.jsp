@@ -22,30 +22,62 @@
         }
         String idclient = ordonnance.getObservation_s();
         java.util.Date daty = ordonnance.getDaty();
-    // inserer une vente
+      // inserer une vente
         String idvente = fonction.set_vente(con,idclient,daty);
         if(idvente == null){
             response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("Insertion de VENTE impossible", "UTF-8"));
             return;
         }
-    // prendre les med_ordonnances_fille
+      // prendre les med_ordonnances_fille
         Vector<MedOrdonnanceFille> ordonnanceFille = fonction.get_medordonnances_fille(idordonnance,con);
-        if(idvente == null){
+        if(ordonnanceFille == null){
             try { con.rollback(); } catch (SQLException ex) { throw ex; }
             response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("Vector Ordonnance fille VIDE", "UTF-8"));
             return;
         }
-    // inserer ventes detaille
+      // inserer ventes detaille
         for(MedOrdonnanceFille odf: ordonnanceFille){
-            String idProduit = odf.getIdMedicament();
-            Medicament medoc = fonction.get_1medicament(idProduit,con);
+          // prendre le medicament
+            Medicament medoc = fonction.get_1medicament(odf.getIdMedicament(),con);
             double quantite = odf.getQuantite();
-            double prix = odf.getPuUnite();
-            String designation = medoc.getLibelle();  // nom medoc
+            double qte_total = 0.0;
+
+          // prendre l'equivalence
+            if(medoc.getUnite().equals(odf.getUnite())){
+                qte_total = quantite;
+            } else{
+                Equivalence equi = fonction.get_equivalence(con,odf.getUnite());
+                if(equi == null){
+                    throw new Exception("Aucun equivalence ne correspond a l'unite choisi !!");
+                }
+                qte_total = equi.getQuantite() * quantite;
+            }
+
+            String idProduit = odf.getIdMedicament();
+            double pu = odf.getPuUnite();
+            double prix = odf.getPrix();
+            String designation = medoc.getLibelle();  // nom medicament
             String idmedecin = ordonnance.getIdmedecin();
-        //  appel de la fonction
-            String idventeDetaille = fonction.set_vente_details(con,idvente,idProduit,quantite,
-            prix,designation,idmedecin);
+            String unite = odf.getUnite();
+          // creer vente_details
+            VenteDetails venteD = new VenteDetails(
+                "id",
+                idvente,
+                idProduit,
+                "idorigine",
+                quantite,
+                pu,
+                0,0,0,0,
+                "iddevise",0,
+                designation,
+                "compte",0,
+                "idachat",0,
+                idmedecin,
+                unite,
+                qte_total
+            );
+          //  appel de la fonction
+            String idventeDetaille = fonction.set_vente_details(con,venteD);
             if(idventeDetaille == null){
                 try { con.rollback(); } catch (SQLException ex) { throw ex; }
                 response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("Insert vente detaille IMPOSSIBLE", "UTF-8"));
@@ -59,7 +91,7 @@
             response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("Vente Vide", "UTF-8"));
             return;
         }
-    // inserer MVT Stock
+      // inserer MVT Stock
         java.util.Date datyPrevu = vente.getDatyPrevu();
         String idMVTstock = fonction.set_MvtStock(con,idvente,datyPrevu);
         if(idMVTstock == null){
@@ -68,8 +100,7 @@
             return;
         }
     
-    // inserer MVT Stock fille
-        
+      // inserer MVT Stock fille  
         Vector<VenteDetails> venteDetails = fonction.get_VenteDetails(con,idvente);
         if(venteDetails == null){
             try { con.rollback(); } catch (SQLException ex) { throw ex; }
@@ -77,12 +108,29 @@
             return;
         }
         for(VenteDetails vntD: venteDetails){
-            double sortie = vntD.getQte();
+            double sortie = vntD.getQte_total();
             double entree = 0.0;
             double pu = vntD.getPu();
             String idprod = vntD.getIdProduit();
             String designe = vntD.getDesignation();
-            String idMVTstock_fille = fonction.set_MvtStockFille(con,idMVTstock,idprod,entree,sortie,designe,pu) ;
+            String unite2 = vntD.getUnite();
+            double qte = vntD.getQte();
+            double pv = qte * pu;
+
+            MvtStockfille mvtF = new MvtStockfille(
+                "id",idMVTstock,
+                idprod,
+                entree,sortie,
+                vntD.getId(),
+                "idtransfer",
+                pu,"mvtsrc",
+                0,designe,
+                null,
+                "dateperemption",
+                "source",
+                unite2,qte,pv
+            );
+            String idMVTstock_fille = fonction.set_MvtStockFille(con,mvtF) ;
             if(idMVTstock_fille == null){
                 try { con.rollback(); } catch (SQLException ex) { throw ex; }
                 response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("Insert MVT Stock Fille IMPOSSIBLE", "UTF-8"));

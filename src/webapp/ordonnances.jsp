@@ -8,284 +8,290 @@
         response.sendRedirect("login.jsp?error=1");
         return;
     }
-    Vector<Med_Ordonnance> ordonnances_nonlivrer = new Vector<>();
-    Vector<Med_Ordonnance> ordonnances_livrer = new Vector<>();
-    Function fonction = new Function();
-    
-    try{
-        ordonnances_nonlivrer = fonction.get_ordonnances_nonLivrer();
-        ordonnances_livrer = fonction.get_ordonnances_Livrer();
 
-    }catch (Exception e) {
+    Function fonction = new Function();
+    Vector<Ordonnance_complet> ordonnances_nonlivrer = new Vector<>();
+    Vector<Ordonnance_complet> ordonnances_livrer = new Vector<>();
+
+    try {
+        ordonnances_nonlivrer = fonction.get_ordonnances_complet_nonLivrer();
+        ordonnances_livrer = fonction.get_ordonnances_complet_Livrer();
+    } catch (Exception e) {
         response.sendRedirect("login.jsp?error=" + e.getMessage());
     }
 %>
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <title>Ordonnances</title>
-    <link rel="stylesheet" type="text/css" href="assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 </head>
+
 <style>
+    /* ======================
+    🎨 Nouveau thème pro
+    ====================== */
     :root {
-        --primary: #2c7be5;      /* bleu professionnel */
-        --success: #00d97e;      /* vert livraison */
-        --danger: #e74c3c;
-        --warning: #f6c31c;
-        --dark: #1a2d4d;
-        --light: #f8f9fa;
-        --gray: #95aac9;
-        --border: #e3ebf6;
+        --primary: #2563eb;
+        --primary-light: #3b82f6;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --gray-dark: #1e293b;
+        --gray: #64748b;
+        --light: #f1f5f9;
+        --card-bg: #ffffff;
+        --border: #e2e8f0;
     }
 
     body {
-        background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        min-height: 100vh;
-        color: #2d3748;
+        background: #f8fafc;
+        font-family: "Inter", sans-serif;
     }
 
-    .bienvenue {
-        margin: 30px 0 40px;
-        color: var(--dark);
-        font-weight: 600;
-        text-align: center;
-        font-size: 2.2rem;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
-
-    /* Carte ordonnance */
-    .ordonnance-card {
-        background: white;
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 25px;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-        border: 1px solid var(--border);
-        transition: all 0.3s ease;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .ordonnance-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 15px 35px rgba(44, 123, 229, 0.15);
-        border-color: var(--primary);
-    }
-
-    .ordonnance-card h4 {
-        color: var(--primary);
+    .section-title {
+        font-size: 2rem;
         font-weight: 700;
-        margin-bottom: 15px;
-        font-size: 1.35rem;
+        color: var(--gray-dark);
+        margin-top: 45px;
+        margin-bottom: 25px;
         text-align: center;
-        border-bottom: 2px solid #e3ebf6;
+    }
+
+    .card-ordonnance {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 22px;
+        box-shadow: 0px 8px 20px rgba(15, 23, 42, 0.08);
+        border: 1px solid var(--border);
+        transition: transform .2s ease, box-shadow .3s ease;
+    }
+
+    .card-ordonnance:hover {
+        transform: translateY(-5px);
+        box-shadow: 0px 18px 35px rgba(37, 99, 235, 0.18);
+    }
+
+    .card-header-pro {
+        text-align: center;
         padding-bottom: 10px;
+        margin-bottom: 10px;
+        border-bottom: 2px solid var(--border);
+        color: var(--primary);
+        font-size: 1.3rem;
+        font-weight: 700;
     }
 
-    .ordonnance-card p {
-        margin: 10px 0;
-        color: #4a5568;
-        font-size: 1rem;
+    .card-ordonnance p {
+        margin: 6px 0;
+        color: var(--gray-dark);
     }
 
-    .ordonnance-card p strong {
-        color: var(--dark);
-    }
-
-    /* Bouton Livrer */
     .btn-livrer {
-        margin-top: auto;
-        padding-top: 12px;
-        background: linear-gradient(135deg, var(--success), #00b06b);
+        background: var(--success);
         color: white;
-        border: none;
-        border-radius: 10px;
-        padding: 12px 20px;
-        font-weight: 600;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
         width: 100%;
+        border-radius: 12px;
+        padding: 12px;
+        font-weight: 600;
+        transition: .2s ease;
     }
 
     .btn-livrer:hover {
-        background: linear-gradient(135deg, #00e68a, #00b06b);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0, 217, 126, 0.3);
+        background: #0f9d72;
     }
 
-    /* Message d'erreur */
-    .error {
-        background: #ffeaea;
-        color: var(--danger);
-        padding: 15px 20px;
-        border-radius: 10px;
-        border-left: 5px solid var(--danger);
-        margin: 20px 0;
-        font-weight: 500;
-        box-shadow: 0 4px 15px rgba(231, 76, 60, 0.1);
+    /* Tableau style dashboard */
+    .table-dashboard thead {
+        background: var(--primary);
+        color: #ffffff;
     }
 
-    /* Quand il n'y a pas d'ordonnance */
+    .table-dashboard th {
+        padding: 12px;
+        font-size: 0.95rem;
+    }
+
+    .table-dashboard td {
+        padding: 12px;
+        vertical-align: middle;
+    }
+
+    .btn-retour {
+        background: var(--warning);
+        color: white;
+        font-weight: 600;
+    }
+
+    .btn-retour:hover {
+        background: #d48806;
+    }
+
+    /* Message vide */
     .no-data {
         text-align: center;
-        padding: 60px 20px;
+        padding: 50px;
         color: var(--gray);
-        font-size: 1.3rem;
+        font-size: 1.2rem;
     }
 
     .no-data i {
-        font-size: 4rem;
-        color: #cbd5e0;
-        margin-bottom: 20px;
-        display: block;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-        .bienvenue {
-            font-size: 1.8rem;
-        }
-        .ordonnance-card {
-            padding: 18px;
-        }
+        font-size: 3.5rem;
+        color: #cbd5e1;
+        margin-bottom: 15px;
     }
 </style>
+
 <body>
+
 <%@ include file="header.jsp" %>
 
-    <div class="container">
-        <div class="row text-center">
-            <h1 class="bienvenue">TOUS LES ORDONNANCES NON LIVRER</h1>
-        </div>
-        <% if(request.getParameter("error") != null) { %>
-            <p class="error">
-                <%= request.getParameter("error") %>
-            </p>
-        <% } %>
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4 mt-3">
-            <% if(ordonnances_nonlivrer == null || ordonnances_nonlivrer.isEmpty()) { %>
-                <div class="col-12">
-                    <div class="no-data">
-                        <i class="bi bi-file-earmark-x"></i>
-                        <h4>Aucune ordonnance non livrée pour le moment</h4>
-                        <p>Toutes les ordonnances_nonlivrer ont été livrées.</p>
-                    </div>
-                </div>
-            <% } else { 
-                for(Med_Ordonnance ordonnance : ordonnances_nonlivrer) { %>
-                    <div class="col">
-                        <div class="ordonnance-card">
-                            <h4>Ordonnance N°<%= ordonnance.getId() %></h4>
-                            <p><strong>Patient :</strong> <%= ordonnance.getObservation_s() != null ? ordonnance.getObservation_s() : "Non spécifié" %></p>
-                            <p><strong>Date :</strong> <%= ordonnance.getDaty() %></p>
-                            
-                            <form action="livraison.jsp" method="post" style="margin-top: 20px;">
-                                <input type="hidden" name="idordonnance" value="<%= ordonnance.getId() %>">
-                                <button type="submit" class="btn-livrer">
-                                    Livrer l'ordonnance
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                <% } 
-            } %>
-        </div>
+<div class="container">
 
-        <div class="row text-center">
-            <h1 class="bienvenue">TOUS LES ORDONNANCES DEJA LIVRER</h1>
-        </div>
-        <% if(request.getParameter("error") != null) { %>
-            <div class="error text-center">
-                <i class="bi bi-exclamation-triangle-fill"></i> <%= request.getParameter("error") %>
+    <h2 class="section-title"><i class="bi bi-hourglass-split"></i> Ordonnances non livrées</h2>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+
+        <% if(ordonnances_nonlivrer == null || ordonnances_nonlivrer.isEmpty()) { %>
+
+            <div class="col-12">
+                <div class="no-data">
+                    <i class="bi bi-clipboard-x"></i>
+                    <p>Aucune ordonnance non livrée</p>
+                </div>
             </div>
-        <% } %>
-        <div class="row">
-            <% if(ordonnances_livrer == null || ordonnances_livrer.isEmpty()) { %>
-                <div class="col-sm-12">
-                    <div class="no-data">
-                        <i class="bi bi-file-earmark-x"></i>
-                        <h4>Aucune ordonnance livrée pour le moment</h4>
-                        <p>Toutes les ordonnances_livrer n'ont pas encore été livrées.</p>
+
+        <% } else {
+            for(Ordonnance_complet ordonnance : ordonnances_nonlivrer) { %>
+
+                <div class="col">
+                    <div class="card-ordonnance">
+                        <div class="card-header-pro">
+                            Ordonnance N° <%= ordonnance.getId() %>
+                        </div>
+                        <p><strong>Prescrit par le Docteur <%= ordonnance.getNomMedecin() %> 
+                            <%= ordonnance.getPrenomMedecin() %> </strong>
+                        </p>
+                        <p><strong>Pour le Patient :</strong> <%= ordonnance.getNom() %></p>
+                        <p><strong>Date :</strong> <%= ordonnance.getDaty() %></p>
+
+                        <form action="livraison.jsp" method="post">
+                            <input type="hidden" name="idordonnance" value="<%= ordonnance.getId() %>">
+                            <button type="submit" class="btn btn-livrer mt-3">
+                                <i class="bi bi-truck"></i> Livrer
+                            </button>
+                        </form>
                     </div>
                 </div>
-            <% } else { 
-                for(Med_Ordonnance ordonnance : ordonnances_livrer) { %>
-                    <div class="col">
-                        <div class="">
-                            <h4>Ordonnance N°<%= ordonnance.getId() %></h4>
-                            <p><strong>Patient :</strong> <%= ordonnance.getObservation_s() != null ? ordonnance.getObservation_s() : "Non spécifié" %></p>
-                            <p><strong>Date :</strong> <%= ordonnance.getDaty() %></p>
-                            
-                                <div class="table-responsive">
-                                <% 
-                                    Vector<Medicament> medicaments = new Vector<>(); 
-                                    Vector<MedOrdonnanceFille> ordonnanceFille = fonction.get_medordonnances_fille(ordonnance.getId());
-                                %>
-                                    <table class="table table-medicaments">
-                                        <thead>
-                                            <tr>
-                                                <th>Médicament</th>
-                                                <th>Quantité< Livrer/th>
-                                                <th style="width: 120px;">Quantité Retourner</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <form action="retourner.jsp" method="post" style="margin-top: 20px;">
-                                                <% if(ordonnanceFille == null || ordonnanceFille.isEmpty()) { %>
-                                                    <tr>
-                                                        <td colspan="4" class="text-center py-5 text-muted">
-                                                            <i class="bi bi-prescription2 fs-1"></i><br>
-                                                            Aucun médicament disponible
-                                                        </td>
-                                                    </tr>
-                                                <% } else { 
-                                                    int index = 0;
-                                                    for(MedOrdonnanceFille odf : ordonnanceFille) { %>
-                                                        <%  
-                                                        Medicament medoc = fonction.get_1medicament(odf.getIdMedicament());
-                                                        %>
-                                                        <tr>
-                                                            <td><strong><%= medoc.getLibelle() %></strong></td>
-                                                                <input type="hidden" name="idmedoc" value="<%= odf.getIdMedicament() %>">
-                                                            <td>
-                                                                <strong><%= odf.getQuantite() %></strong>
-                                                            </td>
-                                                            <td>
-                                                                <input type="hidden" name="date" value="2025-12-1">
-                                                                <input type="number" name="quantite" min="0" max="<%= odf.getQuantite() %>" class="form-control" required>
-                                                            </td>
-                                                            <td>
-                                                                <button type="submit" class="btn btn-save px-5">
-                                                                    <i class="bi bi-check2-all"></i> Retourner
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                <% index++; } } %>
-                                            </form>
-                                        </tbody>
-                                    </table>
-                                </div>
-                        </div>
-                    </div>
-                <% } 
-            } %>
-        </div>
+
+        <% } } %>
+
     </div>
 
+
+    <h2 class="section-title"><i class="bi bi-check-circle"></i> Ordonnances déjà livrées</h2>
+
+    <div class="row g-4">
+
+    <% if(ordonnances_livrer == null || ordonnances_livrer.isEmpty()) { %>
+
+        <div class="col-12">
+            <div class="no-data">
+                <i class="bi bi-clipboard-check"></i>
+                <p>Aucune ordonnance livrée pour le moment</p>
+            </div>
+        </div>
+
+    <% } else {
+        for(Ordonnance_complet ordonnance : ordonnances_livrer) { %>
+
+            <div class="col-12">
+                <div class="card-ordonnance">
+
+                    <div class="card-header-pro">Ordonnance N° <%= ordonnance.getId() %></div>
+
+                    <p><strong>Prescrit par le Docteur <%= ordonnance.getNomMedecin() %> 
+                        <%= ordonnance.getPrenomMedecin() %> </strong>
+                    </p>
+                    <p><strong>Pour le Patient :</strong> <%= ordonnance.getNom() %></p>
+                    <p><strong>Date :</strong> <%= ordonnance.getDaty() %></p>
+
+                    <!-- Tableau des médicaments -->
+                    <div class="table-responsive mt-3">
+                        <% Vector<MedOrdonnanceFille> ordonnanceFille = fonction.get_medordonnances_fille(ordonnance.getId()); %>
+
+                        <table class="table table-dashboard table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Médicament</th>
+                                    <th>Qté Livrée</th>
+                                    <th>Qté à Retourner</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            <% if(ordonnanceFille == null || ordonnanceFille.isEmpty()) { %>
+
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">
+                                        <i class="bi bi-capsule-pill fs-2"></i><br>
+                                        Aucun médicament
+                                    </td>
+                                </tr>
+
+                            <% } else {
+                                for(MedOrdonnanceFille odf : ordonnanceFille) {
+                                    Medicament medoc = fonction.get_1medicament(odf.getIdMedicament());
+                            %>
+
+                                <tr>
+                                    <td><strong><%= medoc.getLibelle() %></strong></td>
+                                    <td><%= odf.getQuantite() %></td>
+
+                                    <form action="retourner.jsp" method="post">
+                                        <input type="hidden" name="idmedoc" value="<%= odf.getIdMedicament() %>">
+
+                                        <td> 
+                                            <select name="unite" id="">
+                                                <% Unite u1 = fonction.get_1unite(medoc.getUnite()); %>
+                                                <option value="<%= medoc.getUnite() %>"><%= u1.getVal() %></option>
+                                                <% if(!medoc.getUnite().equals(odf.getUnite())) {%>
+                                                 <% Unite u2 = fonction.get_1unite(odf.getUnite()); %>
+                                                 <option value="<%= odf.getUnite() %>"><%= u2.getVal() %></option>
+                                                <% } %>
+                                            </select>
+                                        </td>
+
+                                        <td>
+                                            <input type="number" name="quantite" min="0" max="<%= odf.getQuantite() %>" class="form-control">
+                                        </td>
+
+                                        <td>
+                                            <button class="btn btn-retour">
+                                                <i class="bi bi-arrow-return-left"></i> Retourner
+                                            </button>
+                                        </td>
+                                    </form>
+                                </tr>
+
+                            <% } } %>
+
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+    <% } } %>
+
+    </div>
+
+</div>
+
 </body>
-<script>
-        function toggleFields(checkbox, index) {
-            const quantite = document.getElementsByName("quantite_" + index)[0];
-            if (checkbox.checked) {
-                quantite.disabled = false;
-            } else {
-                quantite.disabled = true;
-                quantite.value = '';
-            }
-        }
-    </script>
 </html>

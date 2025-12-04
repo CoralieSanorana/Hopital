@@ -18,13 +18,17 @@ public class MvtStockfille {
     private Date datePeremption;
     private String datePeremptionLib;
     private String source;
+    private String unite;
+    private double quantite;
+    private double pv;
 
     public MvtStockfille() {}
 
-    public MvtStockfille(String id, String idMvtStock, String idProduit, double entree, double sortie,
-                         String idVenteDetail, String idTransfertDetail, double pu, String mvtSrc,
-                         double reste, String designation, Date datePeremption, String datePeremptionLib,
-                         String source) {
+    public MvtStockfille(
+    String id, String idMvtStock, String idProduit, double entree, double sortie,
+    String idVenteDetail, String idTransfertDetail, double pu, String mvtSrc,
+    double reste, String designation, Date datePeremption, String datePeremptionLib,
+    String source, String unite, double quantite, double pv) {
         try {
             setId(id);
             setIdMvtStock(idMvtStock);
@@ -40,6 +44,9 @@ public class MvtStockfille {
             setDatePeremption(datePeremption);
             setDatePeremptionLib(datePeremptionLib);
             setSource(source);
+            setUnite(unite);
+            setQuantite(quantite);
+            setPv(pv);
         } catch (Exception e) {
             e.fillInStackTrace();
         }
@@ -54,6 +61,18 @@ public class MvtStockfille {
 
     public void setIdMvtStock(String idMvtStock) {
         this.idMvtStock = idMvtStock;
+    }
+
+    public void setPv(double pv) {
+        this.pv = pv;
+    }
+
+    public void setQuantite(double quantite) {
+        this.quantite = quantite;
+    }
+
+    public void setUnite(String unite) {
+        this.unite = unite;
     }
 
     public void setIdProduit(String idProduit) {
@@ -124,5 +143,13 @@ public class MvtStockfille {
     public Date getDatePeremption() { return datePeremption; }
     public String getDatePeremptionLib() { return datePeremptionLib; }
     public String getSource() { return source; }
-
+    public double getPv() {
+        return pv;
+    }
+    public double getQuantite() {
+        return quantite;
+    }
+    public String getUnite() {
+        return unite;
+    }
 }

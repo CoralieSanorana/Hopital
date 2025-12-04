@@ -34,7 +34,7 @@ public class EtatStockAll {
 						String idMagasin, String idMagasinLib, Date dateDernierMouvement, double quantite,
 						double entree, double sortie, double reste, String unite, String idUniteLib,
 						double puVente, String idPoint, String idTypeMagasin, double seuilMin, double seuilMax,
-						double montantEntree, double montantSortie, double pu, double montantReste, Date daty) {
+						double montantEntree, double montantSortie, double pu, double montantReste, Date daty) throws Exception{
 		try {
 			setId(id);
 			setIdProduitLib(idProduitLib);
@@ -60,7 +60,7 @@ public class EtatStockAll {
 			setMontantReste(montantReste);
 			setDaty(daty);
 		} catch (Exception e) {
-			e.fillInStackTrace();
+			throw e;
 		}
 	}
 

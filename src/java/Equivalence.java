@@ -2,16 +2,18 @@ package model;
 
 public class Equivalence {
     String id;
+    String idproduit;
     String unite;
     String unite_ref;
     double quantite;
     double pv;
 
     public Equivalence(){}
-    public Equivalence(String id, String unite, String unite_ref,
+    public Equivalence(String id, String idproduit, String unite, String unite_ref,
     double quantite, double pv) throws Exception{
         try{
             setId(id);
+            setIdproduit(idproduit);
             setUnite(unite);
             setUnite_ref(unite_ref);
             setQuantite(quantite);
@@ -26,6 +28,13 @@ public class Equivalence {
             throw new Exception("Id equivalence NULL");
         } else{
             this.id = id; 
+        }
+    }
+    public void setIdproduit(String idproduit) throws Exception{
+        if (idproduit == null) {
+            throw new Exception("ID produit equivalence NULL");
+        } else {
+            this.idproduit = idproduit;
         }
     }
     public void setUnite(String unite) throws Exception{
@@ -57,6 +66,7 @@ public class Equivalence {
         }
     } 
     public String getId(){ return this.id; }
+    public String getIdproduit() { return idproduit; }
     public String getUnite() { return this.unite; }
     public String getUnite_ref() { return this.unite_ref; }
     public double getQuantite() { return this.quantite; }

@@ -1,47 +1,48 @@
-create table user_log(
-    id_user_log NUMBER PRIMARY KEY,
-    nom_user_log VARCHAR2(20) NOT NULL,
-    pwd_user_log VARCHAR2(20) NOT NULL
-);
+/* TABLE USER_LOG */
+    create table user_log(
+        id_user_log NUMBER PRIMARY KEY,
+        nom_user_log VARCHAR2(20) NOT NULL,
+        pwd_user_log VARCHAR2(20) NOT NULL
+    );
+    create SEQUENCE seq_user_log
+    START WITH 1
+    INCREMENT BY 1
+    NOCACHE
+    NOCYCLE;
+    /
+    create or replace TRIGGER user_before_insert
+    BEFORE INSERT ON user_log
+    FOR EACH ROW
+    BEGIN
+        :NEW.id_user_log := seq_user_log.NEXTVAL;
+    END;
+    /
+    INSERT INTO user_log (nom_user_log,pwd_user_log) 
+    VALUES ('Coralie','123');
 
-create SEQUENCE seq_user_log
-START WITH 1
-INCREMENT BY 1
-NOCACHE
-NOCYCLE;
-/
+/* INCREMENTER LES ID DE MED)ORDONNANCE */
+    CREATE OR REPLACE TRIGGER VANIALA.TRG_MED_ORDONNANCE_BI
+    BEFORE INSERT ON VANIALA.MED_ORDONNANCE
+    FOR EACH ROW
+    BEGIN
+        IF :NEW.ID IS NULL THEN
+            :NEW.ID := 'ORD' || LPAD(SEQ_MED_ORDONNANCE.NEXTVAL, 6, '0');
+        END IF;
+    END;
+    /
 
-create or replace TRIGGER user_before_insert
-BEFORE INSERT ON user_log
-FOR EACH ROW
-BEGIN
-    :NEW.id_user_log := seq_user_log.NEXTVAL;
-END;
-/
+/* INCREMENTER LES ID DE MED_ORDONNANCE_FILLE */
+    CREATE OR REPLACE TRIGGER VANIALA.TRG_MED_ORDONNANCE_FILLE_BI
+    BEFORE INSERT ON VANIALA.MED_ORDONNANCE_FILLE
+    FOR EACH ROW
+    BEGIN
+        IF :NEW.ID IS NULL THEN
+            :NEW.ID := 'ORDF' || LPAD(SEQ_MED_ORDONNANCE_FILLE.NEXTVAL, 6, '0');
+        END IF;
+    END;
+    /
 
-INSERT INTO user_log (nom_user_log,pwd_user_log) 
-VALUES ('Coralie','123');
-
-CREATE OR REPLACE TRIGGER VANIALA.TRG_MED_ORDONNANCE_BI
-BEFORE INSERT ON VANIALA.MED_ORDONNANCE
-FOR EACH ROW
-BEGIN
-    IF :NEW.ID IS NULL THEN
-        :NEW.ID := 'ORD' || LPAD(SEQ_MED_ORDONNANCE.NEXTVAL, 6, '0');
-    END IF;
-END;
-/
-
-CREATE OR REPLACE TRIGGER VANIALA.TRG_MED_ORDONNANCE_FILLE_BI
-BEFORE INSERT ON VANIALA.MED_ORDONNANCE_FILLE
-FOR EACH ROW
-BEGIN
-    IF :NEW.ID IS NULL THEN
-        :NEW.ID := 'ORDF' || LPAD(SEQ_MED_ORDONNANCE_FILLE.NEXTVAL, 6, '0');
-    END IF;
-END;
-/
-
+/* VIEW DE MED_ORDONNANCE */
 CREATE OR REPLACE VIEW V_ORDONNANCE_COMPLET AS
 SELECT
     ordo.id,
@@ -72,55 +73,73 @@ LEFT JOIN CLIENT cl       ON ordo.observation_soins = cl.id
 LEFT JOIN MED_MEDECIN med ON ordo.idmedecin = med.id;
 
 
-select count(*) from mvtstockfille where idmvtstock = 'MVTST764048846882';
+/* RESAKA INVENTAIRE ET ETATSTOCK */
+    CREATE OR REPLACE FORCE VIEW "VANIALA"."MVTSTOCKFILLEMONTANT_2" ("ID", "IDMVTSTOCK", "IDPRODUIT", "ENTREE", "SORTIE", "IDVENTEDETAIL", "IDTRANSFERTDETAIL", "PU", "MVTSRC", "RESTE", "DESIGNATION", "MONTANTENTREE", "MONTANTSORTIE") AS 
+    SELECT
+        mf."ID",
+        mf."IDMVTSTOCK",
+        mf."IDPRODUIT",
+        mf."ENTREE",
+        mf."SORTIE",
+        mf."IDVENTEDETAIL",
+        mf."IDTRANSFERTDETAIL",
+        mf."PU",
+        mf."MVTSRC",
+        mf."RESTE",
+        mf."DESIGNATION",
+        CAST(mf.PU*mf.quantite AS NUMBER(30,
+        2)) AS montantEntree,
+        CAST(mf.PU*mf.quantite AS NUMBER(30,
+        2)) AS montantSortie
+    FROM
+	MVTSTOCKFILLE mf ;
 
-CREATE OR REPLACE VIEW MONTANT_STOCK AS
-SELECT
-    mf.IDPRODUIT,
-    SUM(NVL(mf.ENTREE,0)) AS ENTREE,
-    SUM(NVL(mf.SORTIE,0)) AS SORTIE,
-    SUM(NVL(mf.ENTREE,0)) - SUM(NVL(mf.SORTIE,0)) AS quantite,
-    SUM(NVL(mf.montantEntree,0)) AS montantEntree,
-    SUM(NVL(mf.montantSortie,0)) AS montantSortie,
-    NVL(ai.PU, 0) * (SUM(NVL(mf.ENTREE,0)) - SUM(NVL(mf.SORTIE,0))) AS montant,
-    m.IDMAGASIN,
-    MAX(m.DATY) AS daty
-FROM mvtStockFilleMontant mf
-JOIN MVTSTOCK m ON m.id = mf.IDMVTSTOCK AND m.ETAT >= 11  -- on garde le filtre
-JOIN AS_INGREDIENTS ai ON ai.ID = mf.IDPRODUIT
-GROUP BY mf.IDPRODUIT, ai.PU, m.IDMAGASIN;
+    CREATE OR REPLACE VIEW MONTANT_STOCK_2 AS
+    SELECT
+        mf.IDPRODUIT,
+        SUM(NVL(mf.ENTREE,0)) AS ENTREE,
+        SUM(NVL(mf.SORTIE,0)) AS SORTIE,
+        SUM(NVL(mf.ENTREE,0)) - SUM(NVL(mf.SORTIE,0)) AS quantite,
+        SUM(NVL(mf.montantEntree,0)) AS montantEntree,
+        SUM(NVL(mf.montantSortie,0)) AS montantSortie,
+        NVL(ai.PU, 0) * (SUM(NVL(mf.ENTREE,0)) - SUM(NVL(mf.SORTIE,0))) AS montant,
+        m.IDMAGASIN,
+        MAX(m.DATY) AS daty
+    FROM MVTSTOCKFILLEMONTANT_2 mf
+    JOIN MVTSTOCK m ON m.id = mf.IDMVTSTOCK AND m.ETAT >= 11  -- on garde le filtre
+    JOIN AS_INGREDIENTS ai ON ai.ID = mf.IDPRODUIT
+    GROUP BY mf.IDPRODUIT, ai.PU, m.IDMAGASIN;
 
-
-CREATE OR REPLACE VIEW V_ETATSTOCK_ING AS
-SELECT
-    p.ID                                            AS "ID",
-    p.LIBELLE                                       AS "IDPRODUITLIB",
-    p.CATEGORIEINGREDIENT                           AS "CATEGORIEINGREDIENT",
-    tp.DESCE                                        AS "IDTYPEPRODUITLIB",
-    NVL(ms.IDMAGASIN, 'MAG001')                     AS "IDMAGASIN",
-    mag.VAL                                         AS "IDMAGASINLIB",
-    NVL(ms.DATY, TO_DATE('01-01-2001','DD-MM-YYYY')) AS "DATEDERNMOUV", 
-    NVL(ms.quantite, 0)     AS "QUANTITE",
-    NVL(ms.entree, 0)       AS "ENTREE",
-    NVL(ms.sortie, 0)       AS "SORTIE",
-    NVL(ms.quantite, 0)     AS "RESTE",
-    p.UNITE                 AS "UNITE",
-    u.DESCE                 AS "IDUNITELIB",
-    NVL(p.PV, 0)            AS "PUVENTE",
-    mag.IDPOINT             AS "IDPOINT",
-    mag.IDTYPEMAGASIN       AS "IDTYPEMAGASIN",
-    NVL(p.SEUILMIN, 0)       AS "SEUILMIN",
-    NVL(p.SEUILMAX, 0)      AS "SEUILMAX",
-    NVL(ms.montantEntree, 0) AS "MONTANTENTREE",
-    NVL(ms.montantSortie, 0) AS "MONTANTSORTIE",
-    NVL(p.PU, 0)             AS "PU",
-    NVL(ms.montant, 0)       AS "MONTANTRESTE",
-    NVL(ms.DATY, TO_DATE('01-01-2001','DD-MM-YYYY')) AS "DATY"
-FROM AS_INGREDIENTS p
-LEFT JOIN MONTANT_STOCK ms ON ms.IDPRODUIT = p.ID
-LEFT JOIN CATEGORIEINGREDIENT tp ON p.CATEGORIEINGREDIENT = tp.ID
-LEFT JOIN MAGASINPOINT mag ON NVL(ms.IDMAGASIN, 'MAG001') = mag.ID
-LEFT JOIN AS_UNITE u ON p.UNITE = u.ID;
+    CREATE OR REPLACE VIEW V_ETATSTOCK_ING_2 AS
+    SELECT
+        p.ID                                            AS "ID",
+        p.LIBELLE                                       AS "IDPRODUITLIB",
+        p.CATEGORIEINGREDIENT                           AS "CATEGORIEINGREDIENT",
+        tp.DESCE                                        AS "IDTYPEPRODUITLIB",
+        NVL(ms.IDMAGASIN, 'MAG001')                     AS "IDMAGASIN",
+        mag.VAL                                         AS "IDMAGASINLIB",
+        NVL(ms.DATY, TO_DATE('01-01-2001','DD-MM-YYYY')) AS "DATEDERNMOUV", 
+        NVL(ms.quantite, 0)     AS "QUANTITE",
+        NVL(ms.entree, 0)       AS "ENTREE",
+        NVL(ms.sortie, 0)       AS "SORTIE",
+        NVL(ms.quantite, 0)     AS "RESTE",
+        p.UNITE                 AS "UNITE",
+        u.DESCE                 AS "IDUNITELIB",
+        NVL(p.PV, 0)            AS "PUVENTE",
+        mag.IDPOINT             AS "IDPOINT",
+        mag.IDTYPEMAGASIN       AS "IDTYPEMAGASIN",
+        NVL(p.SEUILMIN, 0)       AS "SEUILMIN",
+        NVL(p.SEUILMAX, 0)      AS "SEUILMAX",
+        NVL(ms.montantEntree, 0) AS "MONTANTENTREE",
+        NVL(ms.montantSortie, 0) AS "MONTANTSORTIE",
+        NVL(p.PU, 0)             AS "PU",
+        NVL(ms.montant, 0)       AS "MONTANTRESTE",
+        NVL(ms.DATY, TO_DATE('01-01-2001','DD-MM-YYYY')) AS "DATY"
+    FROM AS_INGREDIENTS p
+    LEFT JOIN MONTANT_STOCK_2 ms ON ms.IDPRODUIT = p.ID
+    LEFT JOIN CATEGORIEINGREDIENT tp ON p.CATEGORIEINGREDIENT = tp.ID
+    LEFT JOIN MAGASINPOINT mag ON NVL(ms.IDMAGASIN, 'MAG001') = mag.ID
+    LEFT JOIN AS_UNITE u ON p.UNITE = u.ID;
 
 
 -- 1. Créer la séquence dans le bon schéma
@@ -147,7 +166,7 @@ CREATE SEQUENCE VANIALA.SEQ_INVENTAIREFILLE
     INCREMENT BY 1
     NOCACHE;
 
--- 2. Trigger qui génère automatiquement l’ID (ex : INVF-000001)
+-- Trigger qui génère automatiquement l’ID (ex : INVF-000001)
 CREATE OR REPLACE TRIGGER VANIALA.TRG_INVENTAIREFILLE_BI
     BEFORE INSERT ON VANIALA.INVENTAIREFILLE
     FOR EACH ROW
@@ -158,20 +177,116 @@ BEGIN
 END;
 /
 
+/* vente_details */
+ALTER TABLE vente_details ADD(
+    unite VARCHAR2(20),
+    qte_total NUMBER(10,2)
+);
+
+/* mvtstockfille */
+ALTER TABLE mvtstockfille ADD(
+    unite VARCHAR2(20),
+    quantite NUMBER(10,2),
+    pv NUMBER(10,2)
+);
+
+/* INVENTAIRE FILLE COMPLET */
 CREATE OR REPLACE VIEW INVENTAIRE_FILLE_COMPLET AS 
-  SELECT 
-i.ID ,
-i.IDINVENTAIRE ,
-i.IDPRODUIT ,
-p.LIBELLE AS IDPRODUITLIB,
-i.EXPLICATION ,
-i.QUANTITETHEORIQUE ,
-i.QUANTITE ,
-i2.DATY ,
-i2.IDMAGASIN ,
-i.idJauge,
-i2.ETAT 
+SELECT 
+ i.ID ,
+ i.IDINVENTAIRE ,
+ i.IDPRODUIT ,
+ p.LIBELLE AS IDPRODUITLIB,
+ i.EXPLICATION ,
+ i.QUANTITETHEORIQUE ,
+ i.QUANTITE ,
+ i2.DATY ,
+ i2.IDMAGASIN ,
+ i.idJauge,
+ i2.ETAT 
 FROM INVENTAIREFILLE i 
 LEFT JOIN AS_INGREDIENTS  p ON p.ID  = i.IDPRODUIT 
-LEFT JOIN INVENTAIRE i2 ON i2.ID  = i.IDINVENTAIRE 
- ;
+LEFT JOIN INVENTAIRE i2 ON i2.ID  = i.IDINVENTAIRE ;
+
+
+/* EQUIVALENCE */
+-- 1) Création de la table avec clé primaire
+CREATE TABLE equivalence (
+    id          VARCHAR2(20) PRIMARY KEY,
+    idproduit   VARCHAR2(20),
+    unite       VARCHAR2(20),
+    unite_ref   VARCHAR2(20),
+    quantite    NUMBER(10,2),
+    pv          NUMBER(10,2)
+);
+DROP SEQUENCE seq_equivalence;
+
+-- 2) Séquence pour générer les ID
+CREATE SEQUENCE seq_equivalence
+    START WITH 1
+    INCREMENT BY 1
+    NOCACHE
+    NOCYCLE;
+/
+-- 3) Trigger BEFORE INSERT
+CREATE OR REPLACE TRIGGER equivalence_before_insert
+BEFORE INSERT ON equivalence
+FOR EACH ROW
+BEGIN
+    :NEW.id := 'EQUI00-' || seq_equivalence.NEXTVAL;
+END;
+/
+
+/* (FARANY) */
+/* UNITE */
+create table AS_UNITE_2(
+    id VARCHAR2(20),
+    val VARCHAR2(20),
+    desce VARCHAR2(20)
+);
+INSERT INTO AS_UNITE_2 (id,val,desce) VALUES ('UNIT0002','plaquette','plaquette');
+INSERT INTO AS_UNITE_2 (id,val,desce) VALUES ('STU000007152420','unite','unite');
+INSERT INTO AS_UNITE_2 (id,val,desce) VALUES ('UNI000006','boite','boite');
+INSERT INTO AS_UNITE_2 (id,val,desce) VALUES ('UNT001106','carton','carton');
+INSERT INTO AS_UNITE_2 (id,val,desce) VALUES ('UNT00005','unite','unite') ;
+
+/* supprimer equivalence */
+/* BEGIN
+  EXECUTE IMMEDIATE 'DROP TABLE EQUIVALENCE CASCADE CONSTRAINTS';
+EXCEPTION WHEN OTHERS THEN NULL;
+END;
+/
+ */
+
+
+/* pour effacer une table avec beaucoup de contraites */
+
+-- 1. Désactiver
+/* BEGIN
+    FOR c IN (
+        SELECT vente_details, constraint_name
+        FROM user_constraints
+        WHERE constraint_type = 'R'
+    ) LOOP
+        EXECUTE IMMEDIATE 'ALTER TABLE ' || c.vente_details ||
+                          ' DISABLE CONSTRAINT ' || c.constraint_name;
+    END LOOP;
+END;
+/ */
+
+-- 2. Delete
+/* DELETE FROM VENTE;
+COMMIT;
+
+-- 3. Réactiver
+BEGIN
+    FOR c IN (
+        SELECT table_name, constraint_name
+        FROM user_constraints
+        WHERE constraint_type = 'R'
+    ) LOOP
+        EXECUTE IMMEDIATE 'ALTER TABLE ' || c.table_name ||
+                          ' ENABLE CONSTRAINT ' || c.constraint_name;
+    END LOOP;
+END;
+/ */

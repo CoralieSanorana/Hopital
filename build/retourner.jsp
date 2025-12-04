@@ -16,25 +16,17 @@ boolean success = false;
 try {
     con = VanialaConnection.getConnection();
     con.setAutoCommit(false);
-    String dateString = request.getParameter("date");
     String idmedoc = request.getParameter("idmedoc");
-    java.util.Date date = null;
+    String unite = request.getParameter("unite");
+    java.util.Date date = new java.util.Date();
 
-    if (dateString == null || dateString.isEmpty()) {
-        response.sendRedirect("ordonnance.jsp?error=" + URLEncoder.encode("Aucune Date selectionner", "UTF-8"));
-        return;
-    }
-    try{
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); 
-        date = sdf.parse(dateString);
-    }catch(Exception e){
-        String msg = e.getMessage() != null ? e.getMessage() : "Erreur inconnue";
-        response.sendRedirect("ordonnance.jsp?error=" + URLEncoder.encode("Erreur : " + msg, "UTF-8"));
-            return;
-    }
 
     if (idmedoc == null) {
-        response.sendRedirect("ordonnance.jsp?error=" + URLEncoder.encode("Aucun médicament sélectionné", "UTF-8"));
+        response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("Aucun médicament sélectionné", "UTF-8"));
+        return;
+    }
+    if (unite == null || unite.isEmpty()) {
+        response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("Aucune Unite selectionner", "UTF-8"));
         return;
     }
     Vector<Medicament> medicaments = fonction.get_medicaments(con);
@@ -42,7 +34,7 @@ try {
         String idMVTstock = fonction.set_MvtStock(con,"",date);
         if(idMVTstock == null){
             try { con.rollback(); } catch (SQLException ex) { throw ex; }
-            response.sendRedirect("ordonnance.jsp?error=" + URLEncoder.encode("Insert MVT Stock IMPOSSIBLE", "UTF-8"));
+            response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("Insert MVT Stock IMPOSSIBLE", "UTF-8"));
             return;
         }
 
@@ -69,15 +61,50 @@ try {
 
 
     // inserer MVT Stock fille
-        double entree = quantite;
+        double entree = 0.0;
+        double pu = 0.0;
+        double pvT = 0.0;
+        if(medoc.getUnite().equals(unite)){
+                entree = quantite;      
+                pu = medoc.getPv();
+                pvT = pu * quantite;
+        } else {
+            Equivalence eq = fonction.get_equivalence(con,unite);
+            if(eq != null){
+                double qte_eq = eq.getQuantite();
+                entree = quantite * qte_eq;
+                pu = eq.getPv();
+                pvT = pu * quantite;
+                
+            } else {
+                try { con.rollback(); } catch (SQLException ex) { throw ex; }
+                response.sendRedirect("Entree.jsp?error=" + URLEncoder.encode("Aucune équivalence trouvée pour l'unité sélectionnée", "UTF-8"));
+                return;
+            }
+        }
+
+        double qte = quantite;
         double sortie = 0.0;
-        double pu = medoc.getPv();
         String idprod = medoc.getId();
         String designe = medoc.getLibelle();
-        String idMVTstock_fille = fonction.set_MvtStockFille(con,idMVTstock,idprod,entree,sortie,designe,pu) ;
+        
+        MvtStockfille mvtF = new MvtStockfille(
+            "id",idMVTstock,
+            idprod,
+            entree,sortie,
+            null,
+            "idtransfer",
+            pu,"mvtsrc",
+            0,designe,
+            null,
+            "dateperemption",
+            "source",
+            unite,qte,pvT
+        );
+        String idMVTstock_fille = fonction.set_MvtStockFille(con,mvtF) ;  
         if(idMVTstock_fille == null){
             try { con.rollback(); } catch (SQLException ex) { throw ex; }
-            response.sendRedirect("ordonnance.jsp?error=" + URLEncoder.encode("Insert MVT Stock Fille IMPOSSIBLE", "UTF-8"));
+            response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("Insert MVT Stock Fille IMPOSSIBLE", "UTF-8"));
             return;
         }
     con.commit();
@@ -88,7 +115,7 @@ try {
     try { con.rollback(); } catch (SQLException ex) { throw ex; }
     e.printStackTrace();
     String msg = e.getMessage() != null ? e.getMessage() : "Erreur inconnue";
-    response.sendRedirect("ordonnance.jsp?error=" + URLEncoder.encode("Erreur : " + msg, "UTF-8"));
+    response.sendRedirect("ordonnances.jsp?error=" + URLEncoder.encode("Erreur : " + msg, "UTF-8"));
 } finally {
     if (con != null) {
         try {

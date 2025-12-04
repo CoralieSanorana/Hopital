@@ -245,24 +245,24 @@
         [] inserer les equivalences pour chaque as_ingredients
         - mettre le prix de vente fixe
     }
-    [] med_ordonnance_fille{
-        [] les ajustement action faire 
+    [ok] med_ordonnance_fille{
+        [ok] les ajustement action faire 
         - mettre dans prix le prix total
         - mettre dans unite le type de unite choisi
-        - mettre dans puunite le prix de un unite
+        - mettre dans puunite le prix de unite choisi
         - mettre dans quantite la quantite de unite choisi 
     }
-    [] vente_details{
-        [] ajouter colonne
-        - unite
-        - qte_total
-        [] ajustement a faire 
-        - mettre dans unite le unite choisi
-        - mettre dans QTE la quantite de unite vendu
-        - mettre dans qte_total le total des pieces vendu
+    [ok] vente_details{
+        [ok] ajouter colonne
+         - unite
+         - qte_total
+        [ok] ajustement a faire 
+         - mettre dans unite le unite choisi
+         - mettre dans QTE la quantite de unite vendu
+         - mettre dans qte_total le total des pieces vendu
     }
     [] mvtstockfille{
-        [] ajouter les colonnes
+        [ok] ajouter les colonnes
         - unite
         - quantite
         - pv
@@ -285,11 +285,16 @@
 
 ***** traitement.jsp *****
  - PAGE:
-    [] prendre les unite choisi
-    [] prendre le pv de unite choisi
-    [] mettre dans pu(med_ordonnance_fille) le pv(unite choisi)
-    [] inserer dans unite(med_ordonnance_fille) le unite choisi
+    [ok] prendre les unite choisi
+    [ok] prendre le pv de unite choisi
+    [ok] mettre dans pu(med_ordonnance_fille) le pv(unite choisi)
+    [ok] inserer dans unite(med_ordonnance_fille) le unite choisi
  - FONCTION: 
-    [] get_equivalence()
+    [ok] get_equivalence()
  - JAVA:
     [ok] Equivalence.java
+
+****** livraison.jsp **********
+    [] ajuster les insertion de :
+      - vente_details
+      - mvtstockfille

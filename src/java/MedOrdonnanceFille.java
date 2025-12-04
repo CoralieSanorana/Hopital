@@ -17,11 +17,12 @@ public class MedOrdonnanceFille {
     private double quantite;
     private double tauxPriseEnCharge;
 
-    public MedOrdonnanceFille(String idMedicament, String posologie, String idOrdonnance,
-                              String id, int etat, String idUser, double prix,
-                              String magasin, int nbJours, String unite,
-                              String remarque, double puUnite, double quantite,
-                              double tauxPriseEnCharge) {
+    public MedOrdonnanceFille(
+    String idMedicament, String posologie, String idOrdonnance,
+    String id, int etat, String idUser, double prix,
+    String magasin, int nbJours, String unite,
+    String remarque, double puUnite, double quantite,
+    double tauxPriseEnCharge) {
         
         this.setIdMedicament(idMedicament);
         this.setPosologie(posologie);

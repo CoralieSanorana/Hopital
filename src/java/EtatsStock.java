@@ -34,7 +34,7 @@ public class EtatsStock {
                       String idMagasin, String idMagasinLib, Date dateDernierMouvement, double quantite,
                       double entree, double sortie, double reste, String unite, String idUniteLib,
                       double puVente, String idPoint, String idTypeMagasin, double seuilMin, double seuilMax,
-                      double montantEntree, double montantSortie, double pu, double montantReste, Date daty) {
+                      double montantEntree, double montantSortie, double pu, double montantReste, Date daty) throws Exception{
         try {
             setId(id);
             setIdProduitLib(idProduitLib);
@@ -60,7 +60,7 @@ public class EtatsStock {
             setMontantReste(montantReste);
             setDaty(daty);
         } catch (Exception e) {
-            e.fillInStackTrace();
+            throw e;
         }
     }
 
@@ -116,18 +116,4 @@ public class EtatsStock {
     public double getMontantReste() { return montantReste; }
     public Date getDaty() { return daty; }
 
-    @Override
-    public String toString() {
-        return "EtatsStock{" +
-                "id='" + id + '\'' +
-                ", idProduitLib='" + idProduitLib + '\'' +
-                ", quantite=" + quantite +
-                ", entree=" + entree +
-                ", sortie=" + sortie +
-                ", reste=" + reste +
-                ", montantEntree=" + montantEntree +
-                ", montantSortie=" + montantSortie +
-                ", montantReste=" + montantReste +
-                '}';
-    }
 }

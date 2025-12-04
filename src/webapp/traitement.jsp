@@ -9,7 +9,7 @@
 Connection con = null;
 Function fonction = new Function();
 boolean success = false;
-Vector<Unite> L-unite = new Vector<>();
+Vector<Unite> L_unite = new Vector<>();
 
 String med = request.getParameter("medecin");
 String patient = request.getParameter("patient");
@@ -48,7 +48,6 @@ try {
     String idOrdonnance = fonction.insert_ordonnance(ordonnance, con);  
     if (idOrdonnance == null) {
         throw new Exception("Échec insertion ordonnance principale");
-        return;
     }
 
     L_unite = fonction.get_as_unite_v(con);
@@ -88,16 +87,18 @@ try {
         }
         if(unite_choisi == null){
             throw new Exception("Aucun Unite choisi !!");
-            return;
         }
         double pu = 0.0;
-        if(medoc.getUnite().equals(unite_choisi)){
+        if(medoc.getUnite().equals(unite)){
             pu = medoc.getPv();
         } else{
-            
+            Equivalence equi = fonction.get_equivalence(con,unite);
+            if(equi == null){
+                throw new Exception("Aucun equivalence ne correspond a l'unite choisi !!");
+            }
+            pu = equi.getPv();
         }
-        double prixTotal = quantite * medoc.getPv();
-        String unite_inserer = "";
+        double prixTotal = quantite * pu;
 
         String idLigne = idOrdonnance + "-" + String.format("%03d", compteurLigne++);
         MedOrdonnanceFille ligne = new MedOrdonnanceFille(
@@ -110,7 +111,7 @@ try {
             prixTotal,                
             "",                        
             quantite,                   
-            unite_inserer,         
+            unite,         
             "",                         
             pu,                        
             quantite,                  

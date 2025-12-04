@@ -59,6 +59,8 @@ try {
         }
 
         String quantiteStr = request.getParameter("quantite_" + indice);
+        String unite = request.getParameter("unite_" + indice);
+
         int quantite = 1;
         if (quantiteStr != null && !quantiteStr.trim().isEmpty()) {
             try {
@@ -68,14 +70,49 @@ try {
                 quantite = 1;
             }
         }
+        double entree = 0.0;
+        double pu = 0.0;
+        double qte = 0.0;
+        double pvT = 0.0;
+        if(medoc.getUnite().equals(unite)){
+                entree = quantite;      
+                pu = medoc.getPv();
+                pvT = pu * quantite;
+        } else {
+            Equivalence eq = fonction.get_equivalence(con,unite);
+            if(eq != null){
+                double qte_eq = eq.getQuantite();
+                entree = quantite * qte_eq;
+                pu = eq.getPv();
+                pvT = pu * quantite;
+                
+            } else {
+                try { con.rollback(); } catch (SQLException ex) { throw ex; }
+                response.sendRedirect("Entree.jsp?error=" + URLEncoder.encode("Aucune équivalence trouvée pour l'unité sélectionnée", "UTF-8"));
+                return;
+            }
+        }
 
         // inserer MVT Stock fille
-            double entree = quantite;
+            qte = quantite;
             double sortie = 0.0;
-            double pu = medoc.getPv();
             String idprod = medoc.getId();
             String designe = medoc.getLibelle();
-            String idMVTstock_fille = fonction.set_MvtStockFille(con,idMVTstock,idprod,entree,sortie,designe,pu) ;
+
+            MvtStockfille mvtF = new MvtStockfille(
+                "id",idMVTstock,
+                idprod,
+                entree,sortie,
+                null,
+                "idtransfer",
+                pu,"mvtsrc",
+                0,designe,
+                null,
+                "dateperemption",
+                "source",
+                unite,qte,pvT
+            );
+            String idMVTstock_fille = fonction.set_MvtStockFille(con,mvtF) ;
             if(idMVTstock_fille == null){
                 try { con.rollback(); } catch (SQLException ex) { throw ex; }
                 response.sendRedirect("Entree.jsp?error=" + URLEncoder.encode("Insert MVT Stock Fille IMPOSSIBLE", "UTF-8"));

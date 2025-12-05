@@ -17,7 +17,7 @@
         ordonnances_nonlivrer = fonction.get_ordonnances_complet_nonLivrer();
         ordonnances_livrer = fonction.get_ordonnances_complet_Livrer();
     } catch (Exception e) {
-        response.sendRedirect("login.jsp?error=" + e.getMessage());
+        response.sendRedirect("home.jsp?error=" + e.getMessage());
     }
 %>
 
@@ -213,7 +213,7 @@
 
                     <div class="card-header-pro">Ordonnance N° <%= ordonnance.getId() %></div>
 
-                    <p><strong>Prescrit par le Docteur <%= ordonnance.getNomMedecin() %> 
+                    <p>Prescrit par le Docteur <strong><%= ordonnance.getNomMedecin() %> 
                         <%= ordonnance.getPrenomMedecin() %> </strong>
                     </p>
                     <p><strong>Pour le Patient :</strong> <%= ordonnance.getNom() %></p>
@@ -252,9 +252,8 @@
                                     <td><strong><%= medoc.getLibelle() %></strong></td>
                                     <td><%= odf.getQuantite() %></td>
 
-                                    <form action="retourner.jsp" method="post">
+                                    <%-- <form action="retourner.jsp" method="post">
                                         <input type="hidden" name="idmedoc" value="<%= odf.getIdMedicament() %>">
-
                                         <td> 
                                             <select name="unite" id="">
                                                 <% Unite u1 = fonction.get_1unite(medoc.getUnite()); %>
@@ -267,11 +266,64 @@
                                         </td>
 
                                         <td>
-                                            <input type="number" name="quantite" min="0" max="<%= odf.getQuantite() %>" class="form-control">
+                                            <input type="number" name="quantite" step="any" min="0" max="<%= odf.getQuantite() %>" class="form-control">
                                         </td>
 
                                         <td>
                                             <button class="btn btn-retour">
+                                                <i class="bi bi-arrow-return-left"></i> Retourner
+                                            </button>
+                                        </td>
+                                    </form> --%>
+                                    <form action="retourner.jsp" method="post">
+                                        <input type="hidden" name="idmedoc" value="<%= odf.getIdMedicament() %>">
+
+                                        <td>
+                                            <select name="unite" id="selectUnite" class="form-control">
+                                                <% 
+                                                    Unite u1 = fonction.get_1unite(medoc.getUnite());
+                                                    Unite u2 = null;
+                                                    double maxUnite1 = odf.getQuantite();
+                                                    double maxUnite2 = 0.0;
+                                                    boolean hasSecondOption = !medoc.getUnite().equals(odf.getUnite());
+                                                    if (hasSecondOption) {
+                                                        u2 = fonction.get_1unite(odf.getUnite());
+                                                        Equivalence eq = fonction.get_equivalence(odf.getUnite());
+                                                        maxUnite1 = odf.getQuantite()*eq.getQuantite();          
+                                                        maxUnite2 = odf.getQuantite();
+                                                    }
+
+                                                %>
+
+                                                <option value="<%= medoc.getUnite() %>" 
+                                                        data-max="<%= maxUnite1 %>">
+                                                    <%= u1.getVal() %>
+                                                </option>
+
+                                                <% if (hasSecondOption) { %>
+                                                <option value="<%= odf.getUnite() %>" 
+                                                        data-max="<%= maxUnite2 %>">
+                                                    <%= u2.getVal() %>
+                                                </option>
+                                                <% } %>
+                                            </select>
+                                        </td>
+
+                                        <td>
+                                            <input type="number" 
+                                                name="quantite" 
+                                                step="any" 
+                                                min="0" 
+                                                id="inputQuantite"
+                                                class="form-control"
+                                                required>
+                                            <small class="text-muted">
+                                                Max : <span id="maxDisplay"><%= maxUnite1 %></span>
+                                            </small>
+                                        </td>
+
+                                        <td>
+                                            <button type="submit" class="btn btn-retour">
                                                 <i class="bi bi-arrow-return-left"></i> Retourner
                                             </button>
                                         </td>
@@ -294,4 +346,32 @@
 </div>
 
 </body>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const selectUnite = document.getElementById("selectUnite");
+    const inputQuantite = document.getElementById("inputQuantite");
+    const maxDisplay = document.getElementById("maxDisplay");
+
+    function updateMax() {
+        const selectedOption = selectUnite.options[selectUnite.selectedIndex];
+        const nouveauMax = selectedOption.getAttribute("data-max");
+
+        inputQuantite.max = nouveauMax;
+        inputQuantite.value = "";       
+        maxDisplay.textContent = nouveauMax;
+
+        // Si la valeur actuelle dépasse le nouveau max, on la réduit
+        if (parseFloat(inputQuantite.value) > parseFloat(nouveauMax)) {
+            inputQuantite.value = nouveauMax;
+        }
+    }
+
+    // Au chargement
+    updateMax();
+
+    // À chaque changement d'unité
+    selectUnite.addEventListener("change", updateMax);
+});
+</script>
 </html>

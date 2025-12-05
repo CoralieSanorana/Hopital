@@ -61,44 +61,33 @@ try {
         String quantiteStr = request.getParameter("quantite_" + indice);
         String unite = request.getParameter("unite_" + indice);
 
-        int quantite = 1;
+        double quantite = 1;
         if (quantiteStr != null && !quantiteStr.trim().isEmpty()) {
             try {
-                quantite = Integer.parseInt(quantiteStr.trim());
+                quantite = Double.parseDouble(quantiteStr.trim());
                 if (quantite <= 0) quantite = 1;
             } catch (NumberFormatException e) {
                 quantite = 1;
             }
         }
+      // obligatoire
+        String idprod = medoc.getId();
+        String designe = medoc.getLibelle();
         double entree = 0.0;
-        double pu = 0.0;
-        double qte = 0.0;
-        double pvT = 0.0;
+        double sortie = 0.0;
+
+      // les quantite int & double
+        int qteInt = (int) quantite;
+        double qteDouble = quantite - qteInt;
+        double puInt = 0.0;
+        double puDouble = 0.0;
+        double pvInt = 0.0;
+        double pvDouble = 0.0;
+
         if(medoc.getUnite().equals(unite)){
                 entree = quantite;      
-                pu = medoc.getPv();
-                pvT = pu * quantite;
-        } else {
-            Equivalence eq = fonction.get_equivalence(con,unite);
-            if(eq != null){
-                double qte_eq = eq.getQuantite();
-                entree = quantite * qte_eq;
-                pu = eq.getPv();
-                pvT = pu * quantite;
-                
-            } else {
-                try { con.rollback(); } catch (SQLException ex) { throw ex; }
-                response.sendRedirect("Entree.jsp?error=" + URLEncoder.encode("Aucune équivalence trouvée pour l'unité sélectionnée", "UTF-8"));
-                return;
-            }
-        }
-
-        // inserer MVT Stock fille
-            qte = quantite;
-            double sortie = 0.0;
-            String idprod = medoc.getId();
-            String designe = medoc.getLibelle();
-
+                double pu = medoc.getPv();
+                double pvT = pu * quantite;
             MvtStockfille mvtF = new MvtStockfille(
                 "id",idMVTstock,
                 idprod,
@@ -110,7 +99,7 @@ try {
                 null,
                 "dateperemption",
                 "source",
-                unite,qte,pvT
+                unite,quantite,pvT
             );
             String idMVTstock_fille = fonction.set_MvtStockFille(con,mvtF) ;
             if(idMVTstock_fille == null){
@@ -118,6 +107,65 @@ try {
                 response.sendRedirect("Entree.jsp?error=" + URLEncoder.encode("Insert MVT Stock Fille IMPOSSIBLE", "UTF-8"));
                 return;
             }
+        } else {
+            Equivalence eq = fonction.get_equivalence(con,unite);
+            {
+                if(eq == null) {
+                    try { con.rollback(); } catch (SQLException ex) { throw ex; }
+                    response.sendRedirect("Entree.jsp?error=" + URLEncoder.encode("Aucune équivalence trouvée pour l'unité sélectionnée", "UTF-8"));
+                    return;
+                }
+                
+                // la partie int
+                puInt = eq.getPv();
+                pvInt = puInt * qteInt;
+                entree = eq.getQuantite() * qteInt;
+                MvtStockfille mvtF1 = new MvtStockfille(
+                    "id",idMVTstock,
+                    idprod,
+                    entree,sortie,
+                    null,
+                    "idtransfer",
+                    puInt,"mvtsrc",
+                    0,designe,
+                    null,
+                    "dateperemption",
+                    "source",
+                    unite,qteInt,pvInt
+                );
+                String idMVTstock_fille1 = fonction.set_MvtStockFille(con,mvtF1) ;
+                if(idMVTstock_fille1 == null){
+                    try { con.rollback(); } catch (SQLException ex) { throw ex; }
+                    response.sendRedirect("Entree.jsp?error=" + URLEncoder.encode("Insert MVT Stock Fille1 IMPOSSIBLE", "UTF-8"));
+                    return;
+                }
+
+                // la parti double
+                puDouble = medoc.getPv();
+                pvDouble = puDouble * qteDouble;
+                entree = qteDouble * eq.getQuantite();
+                MvtStockfille mvtF2 = new MvtStockfille(
+                    "id",idMVTstock,
+                    idprod,
+                    entree,sortie,
+                    null,
+                    "idtransfer",
+                    puDouble,"mvtsrc",
+                    0,designe,
+                    null,
+                    "dateperemption",
+                    "source",
+                    medoc.getUnite(),entree,pvDouble
+                );
+                String idMVTstock_fille2 = fonction.set_MvtStockFille(con,mvtF2) ;
+                if(idMVTstock_fille2 == null){
+                    try { con.rollback(); } catch (SQLException ex) { throw ex; }
+                    response.sendRedirect("Entree.jsp?error=" + URLEncoder.encode("Insert MVT Stock Fille2 IMPOSSIBLE", "UTF-8"));
+                    return;
+                }
+            }
+        }
+
     }
     
     con.commit();

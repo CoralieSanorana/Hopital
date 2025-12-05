@@ -5,7 +5,7 @@
 <%
     User user = (User) session.getAttribute("user_log");
     if (user == null) {
-        response.sendRedirect("../login.jsp?error=1");
+        response.sendRedirect("login.jsp?error=1");
         return;
     }
 
@@ -14,7 +14,7 @@
         Function fonction = new Function();
         etats = fonction.get_EtatStock();
     } catch (Exception e) {
-        response.sendRedirect("../login.jsp?error=" + e.getMessage());
+        response.sendRedirect("home.jsp?error=" + e.getMessage());
     }
 %>
 
@@ -111,7 +111,6 @@
                             <th>Reste</th>
                             <th>Montant Entrée</th>
                             <th>Montant Sortie</th>
-                            <th>Montant Reste</th>
                             <th>PU Vente</th>
                         </tr>
                         </thead>
@@ -128,7 +127,6 @@
                                 <td id="reste"><%= s.getReste() %></td>
                                 <td id="price"><%= s.getMontantEntree() %></td>
                                 <td id="price"><%= s.getMontantSortie() %></td>
-                                <td id="price"><%= s.getMontantReste() %></td>
                                 <td id="price"><%= s.getPuVente() %></td>
                             </tr>
                         <% } %>

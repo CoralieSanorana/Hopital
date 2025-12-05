@@ -265,7 +265,7 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <input type="number" name="quantite_<%= index %>" min="1" value="1" class="form-control" disabled>
+                                            <input type="number" name="quantite_<%= index %>" min="1" value="1" step="any" class="form-control" disabled>
                                         </td>
                                         <td>
                                             <input type="text" name="desc_<%= index %>" placeholder="Ex: 1 comprimé matin et soir..." 

@@ -94,21 +94,26 @@ LEFT JOIN MED_MEDECIN med ON ordo.idmedecin = med.id;
     FROM
 	MVTSTOCKFILLE mf ;
 
-    CREATE OR REPLACE VIEW MONTANT_STOCK_2 AS
-    SELECT
+    CREATE OR REPLACE FORCE VIEW VANIALA.MVTSTOCKFILLEMONTANT_2
+    (ID, IDMVTSTOCK, IDPRODUIT, ENTREE, SORTIE, IDVENTEDETAIL, IDTRANSFERTDETAIL,
+    PU, MVTSRC, RESTE, DESIGNATION, MONTANTENTREE, MONTANTSORTIE)
+    AS
+    SELECT 
+        mf.ID,
+        mf.IDMVTSTOCK,
         mf.IDPRODUIT,
-        SUM(NVL(mf.ENTREE,0)) AS ENTREE,
-        SUM(NVL(mf.SORTIE,0)) AS SORTIE,
-        SUM(NVL(mf.ENTREE,0)) - SUM(NVL(mf.SORTIE,0)) AS quantite,
-        SUM(NVL(mf.montantEntree,0)) AS montantEntree,
-        SUM(NVL(mf.montantSortie,0)) AS montantSortie,
-        NVL(ai.PU, 0) * (SUM(NVL(mf.ENTREE,0)) - SUM(NVL(mf.SORTIE,0))) AS montant,
-        m.IDMAGASIN,
-        MAX(m.DATY) AS daty
-    FROM MVTSTOCKFILLEMONTANT_2 mf
-    JOIN MVTSTOCK m ON m.id = mf.IDMVTSTOCK AND m.ETAT >= 11  -- on garde le filtre
-    JOIN AS_INGREDIENTS ai ON ai.ID = mf.IDPRODUIT
-    GROUP BY mf.IDPRODUIT, ai.PU, m.IDMAGASIN;
+        mf.ENTREE,
+        mf.SORTIE,
+        mf.IDVENTEDETAIL,
+        mf.IDTRANSFERTDETAIL,
+        mf.PU,
+        mf.MVTSRC,
+        mf.RESTE,
+        mf.DESIGNATION,
+        CASE WHEN mf.ENTREE > 0 THEN ROUND(mf.ENTREE * mf.PU, 2) ELSE 0 END AS MONTANTENTREE,
+        CASE WHEN mf.SORTIE > 0 THEN ROUND(mf.SORTIE * mf.PU, 2) ELSE 0 END AS MONTANTSORTIE
+    FROM VANIALA.MVTSTOCKFILLE mf;
+    /
 
     CREATE OR REPLACE VIEW V_ETATSTOCK_ING_2 AS
     SELECT
@@ -257,36 +262,3 @@ EXCEPTION WHEN OTHERS THEN NULL;
 END;
 /
  */
-
-
-/* pour effacer une table avec beaucoup de contraites */
-
--- 1. Désactiver
-/* BEGIN
-    FOR c IN (
-        SELECT vente_details, constraint_name
-        FROM user_constraints
-        WHERE constraint_type = 'R'
-    ) LOOP
-        EXECUTE IMMEDIATE 'ALTER TABLE ' || c.vente_details ||
-                          ' DISABLE CONSTRAINT ' || c.constraint_name;
-    END LOOP;
-END;
-/ */
-
--- 2. Delete
-/* DELETE FROM VENTE;
-COMMIT;
-
--- 3. Réactiver
-BEGIN
-    FOR c IN (
-        SELECT table_name, constraint_name
-        FROM user_constraints
-        WHERE constraint_type = 'R'
-    ) LOOP
-        EXECUTE IMMEDIATE 'ALTER TABLE ' || c.table_name ||
-                          ' ENABLE CONSTRAINT ' || c.constraint_name;
-    END LOOP;
-END;
-/ */

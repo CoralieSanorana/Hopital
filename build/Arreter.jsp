@@ -13,7 +13,7 @@
         Function fonction = new Function();
         etats = fonction.get_EtatStock();
     } catch (Exception e) {
-        response.sendRedirect("../login.jsp?error=" + e.getMessage());
+        response.sendRedirect("home.jsp?error=" + e.getMessage());
     }
 %>
 <!DOCTYPE html>

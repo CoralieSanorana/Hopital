@@ -487,7 +487,7 @@ public class Function{
     }
     
     public Vector<EtatsStock> get_EtatStock(Connection con) throws Exception {
-        String sql = "SELECT * FROM V_ETATSTOCK_ING ORDER BY DATY DESC NULLS LAST";
+        String sql = "SELECT * FROM V_ETATSTOCK_ING_2 ORDER BY DATY DESC NULLS LAST";
         Vector<EtatsStock> etats = new Vector<>();
 
         try (PreparedStatement ps = con.prepareStatement(sql);
@@ -1339,7 +1339,7 @@ public class Function{
                 ord.setAdresse(rs.getString("ADRESSE"));
                 ord.setRemarque(rs.getString("REMARQUE"));
                 ord.setPers_sexe(rs.getString("PERS_SEXE"));
-                ord.setPers_date_nais(new java.util.Date(rs.getDate("PERS_DATE_NAIS").getTime()));
+                ord.setPers_date_nais(getDateFromResultSet(rs, "PERS_DATE_NAIS"));
                 ord.setNomMedecin(rs.getString("NOMMEDECIN"));
                 ord.setPrenomMedecin(rs.getString("PRENOMMEDECIN"));
                 ord.setMatricule(rs.getString("MATRICULE"));

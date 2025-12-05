@@ -16,7 +16,7 @@
         medicaments = fonction.get_medicaments();
         unites = fonction.get_as_unite_v();
     }catch (Exception e) {
-        response.sendRedirect("login.jsp?error=" + e.getMessage());
+        response.sendRedirect("home.jsp?error=" + e.getMessage());
     }
 %>
 <!DOCTYPE html>
@@ -238,7 +238,7 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <input type="number" name="quantite_<%= index %>" min="1" value="1" class="form-control" disabled>
+                                            <input type="number" name="quantite_<%= index %>" step="any" min="1" value="1" class="form-control" disabled>
                                         </td>
                                     </tr>
                             <% index++; } } %>

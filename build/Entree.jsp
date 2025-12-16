@@ -228,12 +228,15 @@
                                         </td>
                                          <td>
                                             <select name="unite_<%= index %>" id="" disabled>
+                                                <option value="<%= medicament.getUnite() %>">Unite</option>
                                               <% if(unites == null) {%>
                                                 <p>Aucun Unite trouver</p>
                                               <%} else{ 
-                                                for(Unite unite: unites) { %>
-                                                 <option value="<%= unite.getId() %>"><%= unite.getVal() %></option>
+                                                for(Unite unite: unites) { 
+                                                    if(!unite.getVal().equals("unite")) {%>
+                                                        <option value="<%= unite.getId() %>"><%= unite.getVal() %></option>
                                                 <% } 
+                                                }
                                               } %>
                                             </select>
                                         </td>

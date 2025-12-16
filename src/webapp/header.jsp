@@ -9,10 +9,10 @@
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item"><a class="nav-link active" href="home.jsp">Home</a></li>
                 <li class="nav-item"><a class="nav-link" href="ordonnances.jsp">Ordonnances</a></li>
-                <li class="nav-item"><a class="nav-link" href="Stock.jsp">Stock</a></li>
                 <li class="nav-item"><a href="Entree.jsp" class="nav-link">Entree</a></li>
                 <li class="nav-item"><a href="Arreter.jsp" class="nav-link">Arretage</a></li>
-                <li class="nav-item"><a href="Inventaire.jsp" class="nav-link">Inventaires</a></li>
+                <li class="nav-item"><a href="Inventaire.jsp" class="nav-link">Liste Inventaires</a></li>
+                <li class="nav-item"><a class="nav-link" href="Stock.jsp">Stockage</a></li>
                 <li class="nav-item"><a href="logout.jsp" class="nav-link">Se deconnecter</a></li>
             </ul>
             <form class="d-flex" role="search">

@@ -166,26 +166,27 @@
 
         <% } else {
             for(Ordonnance_complet ordonnance : ordonnances_nonlivrer) { %>
+                <a href="facture.jsp?id_ordonnance=<%= ordonnance.getId() %>" style="text-decoration:none">
+                    <div class="col">
+                        <div class="card-ordonnance">
+                            <div class="card-header-pro">
+                                Ordonnance N° <%= ordonnance.getId() %>
+                            </div>
+                            <p><strong>Prescrit par le Docteur <%= ordonnance.getNomMedecin() %> 
+                                <%= ordonnance.getPrenomMedecin() %> </strong>
+                            </p>
+                            <p><strong>Pour le Patient :</strong> <%= ordonnance.getNom() %></p>
+                            <p><strong>Date :</strong> <%= ordonnance.getDaty() %></p>
 
-                <div class="col">
-                    <div class="card-ordonnance">
-                        <div class="card-header-pro">
-                            Ordonnance N° <%= ordonnance.getId() %>
+                            <form action="livraison.jsp" method="post">
+                                <input type="hidden" name="idordonnance" value="<%= ordonnance.getId() %>">
+                                <button type="submit" class="btn btn-livrer mt-3">
+                                    <i class="bi bi-truck"></i> Livrer
+                                </button>
+                            </form>
                         </div>
-                        <p><strong>Prescrit par le Docteur <%= ordonnance.getNomMedecin() %> 
-                            <%= ordonnance.getPrenomMedecin() %> </strong>
-                        </p>
-                        <p><strong>Pour le Patient :</strong> <%= ordonnance.getNom() %></p>
-                        <p><strong>Date :</strong> <%= ordonnance.getDaty() %></p>
-
-                        <form action="livraison.jsp" method="post">
-                            <input type="hidden" name="idordonnance" value="<%= ordonnance.getId() %>">
-                            <button type="submit" class="btn btn-livrer mt-3">
-                                <i class="bi bi-truck"></i> Livrer
-                            </button>
-                        </form>
                     </div>
-                </div>
+                </a>
 
         <% } } %>
 
@@ -228,6 +229,7 @@
                                 <tr>
                                     <th>Médicament</th>
                                     <th>Qté Livrée</th>
+                                    <th>Prix</th>
                                     <th>Qté à Retourner</th>
                                     <th></th>
                                 </tr>
@@ -251,30 +253,8 @@
                                 <tr>
                                     <td><strong><%= medoc.getLibelle() %></strong></td>
                                     <td><%= odf.getQuantite() %></td>
+                                    <td><%= odf.getPrix() %> </td>
 
-                                    <%-- <form action="retourner.jsp" method="post">
-                                        <input type="hidden" name="idmedoc" value="<%= odf.getIdMedicament() %>">
-                                        <td> 
-                                            <select name="unite" id="">
-                                                <% Unite u1 = fonction.get_1unite(medoc.getUnite()); %>
-                                                <option value="<%= medoc.getUnite() %>"><%= u1.getVal() %></option>
-                                                <% if(!medoc.getUnite().equals(odf.getUnite())) {%>
-                                                 <% Unite u2 = fonction.get_1unite(odf.getUnite()); %>
-                                                 <option value="<%= odf.getUnite() %>"><%= u2.getVal() %></option>
-                                                <% } %>
-                                            </select>
-                                        </td>
-
-                                        <td>
-                                            <input type="number" name="quantite" step="any" min="0" max="<%= odf.getQuantite() %>" class="form-control">
-                                        </td>
-
-                                        <td>
-                                            <button class="btn btn-retour">
-                                                <i class="bi bi-arrow-return-left"></i> Retourner
-                                            </button>
-                                        </td>
-                                    </form> --%>
                                     <form action="retourner.jsp" method="post">
                                         <input type="hidden" name="idmedoc" value="<%= odf.getIdMedicament() %>">
 
@@ -294,18 +274,18 @@
                                                     }
 
                                                 %>
-
-                                                <option value="<%= medoc.getUnite() %>" 
-                                                        data-max="<%= maxUnite1 %>">
-                                                    <%= u1.getVal() %>
-                                                </option>
-
                                                 <% if (hasSecondOption) { %>
                                                 <option value="<%= odf.getUnite() %>" 
                                                         data-max="<%= maxUnite2 %>">
                                                     <%= u2.getVal() %>
                                                 </option>
                                                 <% } %>
+
+                                                <option value="<%= medoc.getUnite() %>" 
+                                                        data-max="<%= maxUnite1 %>">
+                                                    <%= u1.getVal() %>
+                                                </option>
+
                                             </select>
                                         </td>
 

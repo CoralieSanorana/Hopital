@@ -7,6 +7,7 @@ public class Equivalence {
     String unite_ref;
     double quantite;
     double pv;
+    int etat;
 
     public Equivalence(){}
     public Equivalence(String id, String idproduit, String unite, String unite_ref,
@@ -65,10 +66,14 @@ public class Equivalence {
             this.pv = pv;
         }
     } 
+    public void setEtat(int etat) {
+        this.etat = etat;
+    }
     public String getId(){ return this.id; }
     public String getIdproduit() { return idproduit; }
     public String getUnite() { return this.unite; }
     public String getUnite_ref() { return this.unite_ref; }
     public double getQuantite() { return this.quantite; }
     public double getPv() { return this.pv; }
+    public int getEtat() { return etat;}
 }

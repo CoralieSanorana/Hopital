@@ -1223,7 +1223,7 @@ public class Function{
     
     public Equivalence get_equivalence(Connection con, String unite) throws Exception {
         String sql = """
-            SELECT id, idproduit, unite, unite_ref, quantite, pv
+            SELECT *
             FROM equivalence
             WHERE unite = ?
         """;
@@ -1242,6 +1242,7 @@ public class Function{
                     equi.setUnite_ref(rs.getString("unite_ref"));
                     equi.setQuantite(rs.getDouble("quantite"));
                     equi.setPv(rs.getDouble("pv"));
+                    equi.setEtat(rs.getInt("etat"));
                     return equi;
                 }
 
@@ -1354,6 +1355,86 @@ public class Function{
         return ordonnances;
     }
     
+    public Ordonnance_complet get_1ordonnance_complet(Connection con,String id_ordonnance) throws Exception{
+        String sql = "SELECT * FROM V_ORDONNANCE_COMPLET WHERE id = ?";
+
+        Ordonnance_complet ordonnance = null;
+
+        try{
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, id_ordonnance);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                ordonnance = new Ordonnance_complet();
+
+                ordonnance.setId(rs.getString("ID"));
+                ordonnance.setId_consultation(rs.getString("ID_CONSULTATION"));
+                ordonnance.setDaty(getDateFromResultSet(rs, "DATY"));
+                ordonnance.setNb_jours(rs.getString("NB_JOURS"));
+                ordonnance.setDate_debut(getDateFromResultSet(rs, "DATE_DEBUT"));
+                ordonnance.setDate_fin(getDateFromResultSet(rs, "DATE_FIN"));
+                ordonnance.setObservation(rs.getString("OBSERVATION"));
+                ordonnance.setType(rs.getString("TYPE"));
+                ordonnance.setEtat(rs.getInt("ETAT"));
+                ordonnance.setIdmedecin(rs.getString("IDMEDECIN"));
+                ordonnance.setIdclient(rs.getString("IDCLIENT"));
+                ordonnance.setNom(rs.getString("NOM"));
+                ordonnance.setTelephone(rs.getString("TELEPHONE"));
+                ordonnance.setMail(rs.getString("MAIL"));
+                ordonnance.setAdresse(rs.getString("ADRESSE"));
+                ordonnance.setRemarque(rs.getString("REMARQUE"));
+                ordonnance.setPers_sexe(rs.getString("PERS_SEXE"));
+                ordonnance.setPers_date_nais(getDateFromResultSet(rs, "PERS_DATE_NAIS"));
+                ordonnance.setNomMedecin(rs.getString("NOMMEDECIN"));
+                ordonnance.setPrenomMedecin(rs.getString("PRENOMMEDECIN"));
+                ordonnance.setMatricule(rs.getString("MATRICULE"));
+                ordonnance.setTelMedecin(rs.getString("TELMEDECIN"));
+                ordonnance.setEmailMedecin(rs.getString("EMAILMEDECIN"));
+
+            }
+            ps.close();
+            rs.close();
+        } catch (Exception e) {
+            throw e;
+        }
+        return ordonnance;
+    }
+
+    public boolean delete_ordonnanceF(Connection con,String idOrdonnanceF) throws Exception{
+        boolean retour = false;
+        String sql = "DELETE FROM med_ordonnance_fille WHERE id = ?";
+        try{
+            PreparedStatement st = con.prepareStatement(sql);
+            st.setString(1,idOrdonnanceF);
+            int row = st.executeUpdate();
+            if(row > 0) retour = true;
+            st.close();
+        } catch(Exception e){
+            throw e;
+        }
+        return retour;
+    }
+
+    public boolean update_ordonnanceF(Connection con,MedOrdonnanceFille odf) throws Exception{
+        boolean retour = false;
+        String sql = "UPDATE med_ordonnance_fille SET quantite = ?, unite = ?, puunite = ?, prix = ? WHERE id = ?";
+        try{
+            PreparedStatement st = con.prepareStatement(sql);
+            st.setDouble(1, odf.getQuantite());
+            st.setString(2, odf.getUnite());
+            st.setDouble(3, odf.getPuUnite());
+            st.setDouble(4, odf.getPrix());
+            st.setString(5, odf.getId());
+            int row = st.executeUpdate();
+            if(row > 0) retour = true;
+            st.close();
+        } catch(Exception e){
+            throw e;
+        }
+        return retour;
+    }
+
 // mini fonctions manokatra Connection
     public User login(String nom,String pwd) throws Exception{
         User user = null;
@@ -1371,6 +1452,7 @@ public class Function{
         }
         return user;
     }
+    
     public Vector<Client> get_clients() throws Exception{
         Vector<Client> clients = new Vector<>();
         Connection con = null;
@@ -1387,6 +1469,7 @@ public class Function{
         }
         return clients;
     }
+    
     public Vector<Medecin> get_medecins() throws Exception{
         Vector<Medecin> medecins = new Vector<>();
         Connection con = null;
@@ -1403,6 +1486,7 @@ public class Function{
         }
         return medecins;
     }
+    
     public Vector<Produit> get_produits() throws Exception{
         Vector<Produit> produits = new Vector<>();
         Connection con = null;
@@ -1419,6 +1503,7 @@ public class Function{
         }
         return produits;
     }
+    
     public Vector<Medicament> get_medicaments() throws Exception{
         Vector<Medicament> medicaments = new Vector<>();
         Connection con = null;
@@ -1435,6 +1520,7 @@ public class Function{
         }
         return medicaments;
     }
+    
     public Vector<Med_Ordonnance> get_medordonnances() throws Exception{
         Vector<Med_Ordonnance> ordonnances = new Vector<>();
         Connection con = null;
@@ -1451,6 +1537,7 @@ public class Function{
         }
         return ordonnances;
     }
+    
     public Vector<Med_Ordonnance> get_ordonnances_nonLivrer() throws Exception{
         Vector<Med_Ordonnance> ordonnances = new Vector<>();
         Connection con = null;
@@ -1467,6 +1554,7 @@ public class Function{
         }
         return ordonnances;
     }
+    
     public Vector<Med_Ordonnance> get_ordonnances_Livrer() throws Exception{
         Vector<Med_Ordonnance> ordonnances = new Vector<>();
         Connection con = null;
@@ -1483,6 +1571,7 @@ public class Function{
         }
         return ordonnances;
     }
+    
     public Vector<MedOrdonnanceFille> get_medordonnances_fille(String idordonnance) throws Exception{
         Vector<MedOrdonnanceFille> ordonnances_fille = new Vector<>();
         Connection con = null;
@@ -1499,6 +1588,7 @@ public class Function{
         }
         return ordonnances_fille;
     }
+    
     public Med_Ordonnance get_1ordonnance(String idordonnance) throws Exception{
         Med_Ordonnance ordonnance = null;
         Connection con = null;
@@ -1515,6 +1605,7 @@ public class Function{
         }
         return ordonnance;
     }
+    
     public Vente getVenteById(String idVente) throws Exception {
         Vente vente = null;
         Connection con = null;
@@ -1535,6 +1626,7 @@ public class Function{
         }
         return vente;
     }
+    
     public Vector<EtatStockAll> get_etatStockAll() throws Exception{
         Vector<EtatStockAll> etats = new Vector<>();
         Connection con = null;
@@ -1551,6 +1643,7 @@ public class Function{
         }
         return etats;
     }
+    
     public Vector<MvtStockfille> get_MvtStockfille() throws Exception{
         Vector<MvtStockfille> mvts = new Vector<>();
         Connection con = null;
@@ -1567,6 +1660,7 @@ public class Function{
         }
         return mvts;
     }
+    
     public Vector<EtatsStock> get_EtatStock() throws Exception{
         Vector<EtatsStock> etats = new Vector<>();
         Connection con = null;
@@ -1583,6 +1677,7 @@ public class Function{
         }
         return etats;
     }
+    
     public Vector<MontantStock> get_MontantStock() throws Exception{
         Vector<MontantStock> montants = new Vector<>();
         Connection con = null;
@@ -1599,6 +1694,7 @@ public class Function{
         }
         return montants;
     }
+    
     public Medicament get_1medicament(String idmedicament) throws Exception{
         Medicament medicament = null;
         Connection con = null;
@@ -1615,6 +1711,7 @@ public class Function{
         }
         return medicament;
     }
+    
     public String set_vente(String idClient, java.util.Date daty) throws Exception {
         String id = null;
         Connection con = null;
@@ -1628,6 +1725,7 @@ public class Function{
         }
         return id;
     }
+    
     public String set_vente_details(VenteDetails venteD) throws Exception {
         String id = null;
         Connection con = null;
@@ -1641,6 +1739,7 @@ public class Function{
         }
         return id;
     }
+    
     public Vector<VenteDetails> get_VenteDetails(String idVente) throws Exception {
         Vector<VenteDetails> details = new Vector<>();
         Connection con = null;
@@ -1654,6 +1753,7 @@ public class Function{
         }
         return details;
     }   
+    
     public String set_MvtStock(String idVente, java.util.Date daty) throws Exception {
         String id = null;
         Connection con = null;
@@ -1667,6 +1767,7 @@ public class Function{
         }
         return id;
     }
+    
     public String set_MvtStockFille(MvtStockfille mvtF) throws Exception {
         String id = null;
         Connection con = null;
@@ -1680,6 +1781,7 @@ public class Function{
         }
         return id;
     }
+    
     public String insert_inventaire(Inventaire inventaire) throws Exception{
         String id = null;
         Connection con = null;
@@ -1693,6 +1795,7 @@ public class Function{
         }
         return id;
     }    
+    
     public String insert_inventairefille(model.InventaireFille invf) throws Exception{
         String id = null;
         Connection con = null;
@@ -1706,6 +1809,7 @@ public class Function{
         }
         return id;
     }  
+    
     public Vector<InventaireFille_ING> get_inventairefille_ing(String idInv) throws Exception {
         Vector<InventaireFille_ING> invf_ing = new Vector<>();
         Connection con = null;
@@ -1719,6 +1823,7 @@ public class Function{
         }
         return invf_ing;
     }   
+    
     public Inventaire getInventaireById(String idInv) throws Exception {
         Inventaire inv = null;
         Connection con = null;
@@ -1732,6 +1837,7 @@ public class Function{
         }
         return inv;
     }
+    
     public Inventaire getInventaire_recent() throws Exception {
         Inventaire inv = null;
         Connection con = null;
@@ -1745,6 +1851,7 @@ public class Function{
         }
         return inv;
     }
+    
     public Inventaire getInventaireByDate(java.util.Date dateRecherche) throws Exception {
         String url = "jdbc:oracle:thin:@...";
         Properties props = new Properties();
@@ -1757,6 +1864,7 @@ public class Function{
             return getInventaireByDate(con, dateRecherche);
         }
     }
+    
     public Vector<Unite> get_as_unite_v() throws Exception{
         Vector<Unite> unite = new Vector<>();
         Connection con = null;
@@ -1770,6 +1878,7 @@ public class Function{
         }
         return unite;
     }
+    
     public Equivalence get_equivalence(String unite) throws Exception{
         try(Connection con = VanialaConnection.getConnection()){
             return get_equivalence(con,unite);
@@ -1777,6 +1886,7 @@ public class Function{
             throw e;
         }
     }
+    
     public Unite get_1unite(String id) throws Exception{
         try (Connection con = VanialaConnection.getConnection()){
             return get_1unite(con,id);
@@ -1784,6 +1894,7 @@ public class Function{
             throw e;
         }
     }
+    
     public Vector<Ordonnance_complet> get_ordonnances_complet_nonLivrer() throws Exception{
         Vector<Ordonnance_complet> ordonnances = new Vector<>();
         Connection con = null;
@@ -1800,6 +1911,7 @@ public class Function{
         }
         return ordonnances;
     }
+    
     public Vector<Ordonnance_complet> get_ordonnances_complet_Livrer() throws Exception{
         Vector<Ordonnance_complet> ordonnances = new Vector<>();
         Connection con = null;
@@ -1817,6 +1929,50 @@ public class Function{
         return ordonnances;
     }
     
+    public Ordonnance_complet get_1ordonnance_complet(String id_ordonnance) throws Exception{
+        Ordonnance_complet ordonnance = null;
+        Connection con = null;
+        try{
+            con = VanialaConnection.getConnection();
+            ordonnance = get_1ordonnance_complet(con,id_ordonnance);
+
+        }catch (Exception e) {
+            throw e;
+        } finally{
+            if(con != null){
+                con.close();
+            }
+        }
+        return ordonnance;
+    }
+    
+    public boolean delete_ordonnanceF(String id) throws Exception{
+        boolean retour = false;
+        Connection con = null;
+        try{
+            con = VanialaConnection.getConnection();
+            retour = delete_ordonnanceF(con,id);
+        } catch(Exception e){
+            throw e;
+        } finally{
+            if(con != null) con.close();
+        }
+        return retour;
+    }
+
+    public boolean update_ordonnanceF(MedOrdonnanceFille odf) throws Exception{
+        boolean retour = false;
+        Connection con = null;
+        try{
+            con = VanialaConnection.getConnection();
+            retour = update_ordonnanceF(con,odf);
+        } catch(Exception e){
+            throw e;
+        } finally{
+            if(con != null) con.close();
+        }
+        return retour;
+    }
 // fonctions utiles
     private java.util.Date getDateFromResultSet(ResultSet rs, String columnName) throws Exception {
         java.sql.Date sqlDate = rs.getDate(columnName);

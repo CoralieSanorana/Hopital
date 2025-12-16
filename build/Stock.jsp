@@ -109,9 +109,9 @@
                             <th>Entrée</th>
                             <th>Sortie</th>
                             <th>Reste</th>
-                            <th>Montant Entrée</th>
+                            <%-- <th>Montant Entrée</th>
                             <th>Montant Sortie</th>
-                            <th>PU Vente</th>
+                            <th>PU Vente</th> --%>
                         </tr>
                         </thead>
 
@@ -125,9 +125,9 @@
                                 <td id="entry"><%= s.getEntree() %></td>
                                 <td id="exit"><%= s.getSortie() %></td>
                                 <td id="reste"><%= s.getReste() %></td>
-                                <td id="price"><%= s.getMontantEntree() %></td>
+                                <%-- <td id="price"><%= s.getMontantEntree() %></td>
                                 <td id="price"><%= s.getMontantSortie() %></td>
-                                <td id="price"><%= s.getPuVente() %></td>
+                                <td id="price"><%= s.getPuVente() %></td> --%>
                             </tr>
                         <% } %>
                         </tbody>

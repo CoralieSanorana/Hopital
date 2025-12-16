@@ -45,6 +45,7 @@ try {
       ordonnance.setType("");                          
       ordonnance.setEtat(1);                           
       ordonnance.setObservation_s(patient);         
+    
     String idOrdonnance = fonction.insert_ordonnance(ordonnance, con);  
     if (idOrdonnance == null) {
         throw new Exception("Échec insertion ordonnance principale");
@@ -69,16 +70,18 @@ try {
         String unite = request.getParameter("unite_" + indice);
         Unite unite_choisi = null;
 
-        int quantite = 1;
+        double quantite = 1;
         if (quantiteStr != null && !quantiteStr.trim().isEmpty()) {
             try {
-                quantite = Integer.parseInt(quantiteStr.trim());
+                quantite = Double.parseDouble(quantiteStr.trim());
                 if (quantite <= 0) quantite = 1;
             } catch (NumberFormatException e) {
                 quantite = 1;
             }
         }
+
         if (posologie == null) posologie = "";
+        
         for(Unite u: L_unite){
             if(u.getId().equals(unite)){
                 unite_choisi = u;
@@ -88,37 +91,71 @@ try {
         if(unite_choisi == null){
             throw new Exception("Aucun Unite choisi !!");
         }
+        // qte diviser en 2
+        int qteInt = (int) quantite;
+        double qteDouble = (double) (quantite - qteInt);
+
         double pu = 0.0;
+        int etat_equi = 0;
+
         if(medoc.getUnite().equals(unite)){
             pu = medoc.getPv();
+            double prixTotal = quantite * pu;
+
+            String idLigne = idOrdonnance + "-" + String.format("%03d", compteurLigne++);
+            MedOrdonnanceFille ligne1 = new MedOrdonnanceFille(
+                idMedoc,                   
+                posologie,                 
+                idOrdonnance,              
+                idLigne,                   
+                11,                       
+                "",                       
+                prixTotal,                
+                "",                        
+                1,                   
+                unite,         
+                "",                         
+                pu,                        
+                quantite,                  
+                0.0                      
+            );
+
+        fonction.insert_ordonnance_fille(ligne1, con);
         } else{
             Equivalence equi = fonction.get_equivalence(con,unite);
             if(equi == null){
                 throw new Exception("Aucun equivalence ne correspond a l'unite choisi !!");
             }
             pu = equi.getPv();
+            etat_equi = equi.getEtat();
+            double prixTotal = 0.0;
+
+            if(etat_equi == 0){             // divisible
+                double qte_d = qteDouble * equi.getQuantite();
+                prixTotal = (pu * qteInt) + (medoc.getPv() * qte_d);
+            } else if(etat_equi == 1){      // pas divisible
+                prixTotal = pu * quantite;
+            }
+
+            String idLigne = idOrdonnance + "-" + String.format("%03d", compteurLigne++);
+            MedOrdonnanceFille ligne2 = new MedOrdonnanceFille(
+                idMedoc,                   
+                posologie,                 
+                idOrdonnance,              
+                idLigne,                   
+                11,                       
+                "",                       
+                prixTotal,                
+                "",                        
+                1,                   
+                unite,         
+                "",                         
+                pu,                        
+                quantite,                  
+                0.0                      
+            );
+            fonction.insert_ordonnance_fille(ligne2, con);
         }
-        double prixTotal = quantite * pu;
-
-        String idLigne = idOrdonnance + "-" + String.format("%03d", compteurLigne++);
-        MedOrdonnanceFille ligne = new MedOrdonnanceFille(
-            idMedoc,                   
-            posologie,                 
-            idOrdonnance,              
-            idLigne,                   
-            11,                       
-            "",                       
-            prixTotal,                
-            "",                        
-            quantite,                   
-            unite,         
-            "",                         
-            pu,                        
-            quantite,                  
-            0.0                      
-        );
-
-        fonction.insert_ordonnance_fille(ligne, con);
     }
     con.commit();
     success = true;

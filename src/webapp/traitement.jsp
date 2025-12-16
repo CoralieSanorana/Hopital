@@ -52,7 +52,7 @@ try {
     }
 
     L_unite = fonction.get_as_unite_v(con);
-
+    double Mtotal = 0.0;
     int compteurLigne = 1;
     for (String idMedoc : selectedMedocIds) {
         Medicament medoc = null;
@@ -101,7 +101,7 @@ try {
         if(medoc.getUnite().equals(unite)){
             pu = medoc.getPv();
             double prixTotal = quantite * pu;
-
+            Mtotal += prixTotal;
             String idLigne = idOrdonnance + "-" + String.format("%03d", compteurLigne++);
             MedOrdonnanceFille ligne1 = new MedOrdonnanceFille(
                 idMedoc,                   
@@ -136,6 +136,7 @@ try {
             } else if(etat_equi == 1){      // pas divisible
                 prixTotal = pu * quantite;
             }
+            Mtotal += prixTotal;
 
             String idLigne = idOrdonnance + "-" + String.format("%03d", compteurLigne++);
             MedOrdonnanceFille ligne2 = new MedOrdonnanceFille(
@@ -157,12 +158,30 @@ try {
             fonction.insert_ordonnance_fille(ligne2, con);
         }
     }
+    Ordonnance_complet ORDMere = fonction.get_1ordonnance_complet(con,idOrdonnance);
+    long now = System.currentTimeMillis();
+    String idNv = "ORD"+Mtotal+""+ORDMere.getDaty()+"" + String.format("%012d", now % 10000L);
+    if(fonction.update_ordonnance(con,idNv,idOrdonnance)){
+        Vector<MedOrdonnanceFille> ordonnanceFille = fonction.get_medordonnances_fille(idOrdonnance,con);
+        for(MedOrdonnanceFille odf: ordonnanceFille){
+            odf.setIdOrdonnance(idNv);
+            out.println(
+                "UPDATE ODF id=" + odf.getId() +
+                " oldOrd=" + idOrdonnance +
+                " newOrd=" + odf.getIdOrdonnance()
+            );
+            if(!fonction.update_ordonnanceF(con, odf)){
+                throw new Exception("Erreur lors de Update ODF "+odf.getId());
+            } 
+        }
+    }
+
     con.commit();
     success = true;
     response.sendRedirect("ordonnances.jsp");
 
 } catch (Exception e) {
-    try { con.rollback(); } catch (SQLException ex) { throw ex; }
+    try { con.rollback(); } catch (Exception ex) { throw ex; }
     e.printStackTrace();
     String msg = e.getMessage() != null ? e.getMessage() : "Erreur inconnue";
     response.sendRedirect("home.jsp?error=" + URLEncoder.encode("Erreur : " + msg, "UTF-8"));
@@ -171,7 +190,7 @@ try {
         try {
             con.setAutoCommit(true); 
             con.close();
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             throw ex;
         }
     }

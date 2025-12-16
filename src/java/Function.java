@@ -1418,14 +1418,16 @@ public class Function{
 
     public boolean update_ordonnanceF(Connection con,MedOrdonnanceFille odf) throws Exception{
         boolean retour = false;
-        String sql = "UPDATE med_ordonnance_fille SET quantite = ?, unite = ?, puunite = ?, prix = ? WHERE id = ?";
+        String sql = "UPDATE med_ordonnance_fille SET quantite = ?, unite = ?, puunite = ?, prix = ?, idordonnance = ? WHERE id = ?";
         try{
             PreparedStatement st = con.prepareStatement(sql);
             st.setDouble(1, odf.getQuantite());
             st.setString(2, odf.getUnite());
             st.setDouble(3, odf.getPuUnite());
             st.setDouble(4, odf.getPrix());
-            st.setString(5, odf.getId());
+            st.setString(5, odf.getIdOrdonnance());
+            st.setString(6, odf.getId());
+
             int row = st.executeUpdate();
             if(row > 0) retour = true;
             st.close();
@@ -1435,6 +1437,22 @@ public class Function{
         return retour;
     }
 
+    public boolean update_ordonnance(Connection con, String idNv, String idAn) throws Exception{
+        boolean retour = false;
+        String sql = "UPDATE med_ordonnance SET id = ? WHERE id = ?";
+        try{
+            PreparedStatement st = con.prepareStatement(sql);
+            st.setString(1, idNv);
+            st.setString(2, idAn);
+            
+            int row = st.executeUpdate();
+            if(row > 0) retour = true;
+            st.close();
+        } catch(Exception e){
+            throw e;
+        }
+        return retour;
+    }
 // mini fonctions manokatra Connection
     public User login(String nom,String pwd) throws Exception{
         User user = null;
@@ -1973,7 +1991,22 @@ public class Function{
         }
         return retour;
     }
-// fonctions utiles
+
+    public boolean update_ordonnance(String idNv, String  idAn) throws Exception{
+        boolean retour = false;
+        Connection con = null;
+        try{
+            con = VanialaConnection.getConnection();
+            retour = update_ordonnance(con,idNv,idAn);
+        } catch(Exception e){
+            throw e;
+        } finally{
+            if(con != null) con.close();
+        }
+        return retour;
+    }
+
+    // fonctions utiles
     private java.util.Date getDateFromResultSet(ResultSet rs, String columnName) throws Exception {
         java.sql.Date sqlDate = rs.getDate(columnName);
         return sqlDate != null ? new java.util.Date(sqlDate.getTime()) : null;

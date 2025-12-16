@@ -274,3 +274,7 @@ INSERT INTO AS_UNITE_2 (id,val,desce) VALUES ('unite2','uniteNonDivisible','unit
 
 INSERT INTO equivalence (idproduit, unite, unite_ref, quantite, pv,etat) VALUES ('IGC', 'unite1', 'STU000007152420', 100, 5000.0,0);
 INSERT INTO equivalence (idproduit, unite, unite_ref, quantite, pv, etat) VALUES ('IGC', 'unite2', 'STU000007152420', 100, 5000.0,1);
+
+/* agrandir la taille de id MED_ORDONNANCE */
+ALTER TABLE MED_ORDONNANCE
+MODIFY ID VARCHAR2(100);
